@@ -8,8 +8,8 @@ export default function HomePage() {
           Classement SoloQ
         </h1>
         <p className="text-muted max-w-xl mx-auto">
-          Classement par rang actuel (Or &gt; Argent &gt; …), puis progression.
-          EUW uniquement.
+          Classement par tier (pas de division), puis progression dans le même
+          tier. EUW uniquement.
         </p>
       </header>
       <Leaderboard />

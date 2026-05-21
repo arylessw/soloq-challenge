@@ -1,9 +1,9 @@
 import { prisma } from "@/lib/db";
 import {
-  compareRankHierarchy,
+  compareTierOnly,
   formatRank,
   progressBetween,
-  rankToScore,
+  tierIndex,
 } from "@/lib/ranks";
 
 export type PlayerView = {
@@ -52,8 +52,19 @@ function toView(p: {
       p.currentDivision!,
       p.currentLp!
     );
-    progressLabel =
-      progress >= 0 ? `+${progress} pts` : `${progress} pts`;
+
+    const tierGap =
+      tierIndex(p.currentTier!) - tierIndex(p.startTier);
+    if (tierGap !== 0) {
+      const n = Math.abs(tierGap);
+      progressLabel =
+        tierGap > 0
+          ? `+${n} rank${n > 1 ? "s" : ""}`
+          : `-${n} rank${n > 1 ? "s" : ""}`;
+    } else {
+      progressLabel =
+        progress >= 0 ? `+${progress} pts` : `${progress} pts`;
+    }
   }
 
   const totalGames = (p.wins ?? 0) + (p.losses ?? 0);
@@ -102,38 +113,19 @@ function playerProgress(p: {
   );
 }
 
-function currentRankScore(p: {
-  currentTier: string | null;
-  currentDivision: string | null;
-  currentLp: number | null;
-}): number {
-  if (!p.currentTier || p.currentDivision == null || p.currentLp == null) {
-    return -1;
-  }
-  return rankToScore(p.currentTier, p.currentDivision, p.currentLp);
-}
-
 export async function listPlayers(): Promise<PlayerView[]> {
   const players = await prisma.player.findMany();
 
   players.sort((a, b) => {
-    const scoreA = currentRankScore(a);
-    const scoreB = currentRankScore(b);
+    const tierA = a.currentTier;
+    const tierB = b.currentTier;
 
-    // 1. Rang actuel d'abord (Or > Argent > … même à -500000 pts de progression)
-    if (scoreA >= 0 && scoreB >= 0 && scoreA !== scoreB) {
-      return compareRankHierarchy(
-        b.currentTier!,
-        b.currentDivision!,
-        b.currentLp!,
-        a.currentTier!,
-        a.currentDivision!,
-        a.currentLp!
-      );
-    }
-    if (scoreB !== scoreA) return scoreB - scoreA;
+    if (tierA && tierB) {
+      const tierCmp = compareTierOnly(tierB, tierA);
+      if (tierCmp !== 0) return tierCmp;
+    } else if (tierB && !tierA) return 1;
+    else if (tierA && !tierB) return -1;
 
-    // 2. Même palier : progression
     return playerProgress(b) - playerProgress(a);
   });
 

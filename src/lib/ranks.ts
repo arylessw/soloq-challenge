@@ -49,7 +49,16 @@ const DIVISION_ORDER: Record<Division, number> = {
   I: 3,
 };
 
-/** Tier > division > LP — un Or IV 0 LP reste au-dessus d'un Argent I 99 LP */
+export function tierIndex(tier: string): number {
+  return TIER_ORDER[tier.toUpperCase() as Tier] ?? 0;
+}
+
+/** Compare uniquement le tier (Diamant II = Diamant III pour la hiérarchie) */
+export function compareTierOnly(tierA: string, tierB: string): number {
+  return tierIndex(tierA) - tierIndex(tierB);
+}
+
+/** Tier > division > LP — pour départager à l'intérieur d'un même tier */
 export function compareRankHierarchy(
   tierA: string,
   divisionA: string,
@@ -104,6 +113,12 @@ export function progressBetween(
   currentDivision: string,
   currentLp: number
 ): number {
+  const tierGap = tierIndex(currentTier) - tierIndex(startTier);
+
+  if (tierGap !== 0) {
+    return tierGap * 10_000;
+  }
+
   return (
     rankToScore(currentTier, currentDivision, currentLp) -
     rankToScore(startTier, startDivision, startLp)
