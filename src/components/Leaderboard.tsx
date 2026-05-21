@@ -10,7 +10,6 @@ type LeaderboardData = {
   TEAM1: PlayerView[];
   TEAM2: PlayerView[];
   counts: { TEAM1: number; TEAM2: number };
-  powers: { TEAM1: number; TEAM2: number };
 };
 
 function formatRelativeTime(date: Date): string {
@@ -30,12 +29,10 @@ function formatCountdown(seconds: number): string {
 function TeamTable({
   team,
   players,
-  startPower,
   accent,
 }: {
   team: Team;
   players: PlayerView[];
-  startPower: number;
   accent: "blue" | "red";
 }) {
   const border = accent === "blue" ? "border-blue-400/30" : "border-red-400/30";
@@ -46,7 +43,7 @@ function TeamTable({
       <h2 className={`font-display text-xl mb-4 ${title}`}>
         {TEAM_LABELS[team]}
         <span className="ml-2 text-sm font-sans font-normal text-muted">
-          {players.length} joueur{players.length !== 1 ? "s" : ""} · {startPower} pts départ
+          ({players.length})
         </span>
       </h2>
       {players.length === 0 ? (
@@ -203,8 +200,7 @@ export function Leaderboard() {
         <div className="text-sm text-muted space-y-1">
           <p>
             {totalPlayers} joueur{totalPlayers !== 1 ? "s" : ""} — Équipe 1 :{" "}
-            {data?.counts.TEAM1 ?? 0} ({data?.powers.TEAM1 ?? 0} pts départ) · Équipe 2 :{" "}
-            {data?.counts.TEAM2 ?? 0} ({data?.powers.TEAM2 ?? 0} pts départ)
+            {data?.counts.TEAM1 ?? 0} · Équipe 2 : {data?.counts.TEAM2 ?? 0}
           </p>
           {totalPlayers > 0 && (
             <p className="flex flex-wrap items-center gap-2 text-xs">
@@ -252,18 +248,8 @@ export function Leaderboard() {
         </div>
       ) : (
         <div className="grid gap-6 lg:grid-cols-2">
-          <TeamTable
-            team="TEAM1"
-            players={data?.TEAM1 ?? []}
-            startPower={data?.powers.TEAM1 ?? 0}
-            accent="blue"
-          />
-          <TeamTable
-            team="TEAM2"
-            players={data?.TEAM2 ?? []}
-            startPower={data?.powers.TEAM2 ?? 0}
-            accent="red"
-          />
+          <TeamTable team="TEAM1" players={data?.TEAM1 ?? []} accent="blue" />
+          <TeamTable team="TEAM2" players={data?.TEAM2 ?? []} accent="red" />
         </div>
       )}
     </div>

@@ -10,7 +10,6 @@ type TeamOption = {
   id: Team;
   label: string;
   count: number;
-  startPower: number;
   canJoin: boolean;
   blockReason: string | null;
 };
@@ -30,25 +29,16 @@ export function RegisterForm() {
   const needsDivision = divisionRequired(startTier);
 
   useEffect(() => {
-    const div = needsDivision ? startDivision : "I";
-    const params = new URLSearchParams({
-      startTier,
-      startDivision: div,
-      startLp: String(startLp),
-    });
-    fetch(`/api/teams?${params}`)
+    fetch("/api/teams")
       .then((r) => r.json())
       .then((data) => {
         const opts = (data.teams ?? []) as TeamOption[];
         setTeamOptions(opts);
-        const stillOk = opts.find((t) => t.id === team && t.canJoin);
-        if (!stillOk) {
-          const firstOpen = opts.find((t) => t.canJoin);
-          if (firstOpen) setTeam(firstOpen.id);
-        }
+        const firstOpen = opts.find((t) => t.canJoin);
+        if (firstOpen) setTeam(firstOpen.id);
       })
       .catch(() => {});
-  }, [startTier, startDivision, startLp, needsDivision, team]);
+  }, []);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -121,7 +111,6 @@ export function RegisterForm() {
                 <span className="font-medium">{TEAM_LABELS[id]}</span>
                 <span className="text-xs text-muted mt-1">
                   {count} joueur{count !== 1 ? "s" : ""}
-                  {opt ? ` · ${opt.startPower} pts rang départ` : ""}
                 </span>
                 {!canJoin && (
                   <span className="text-xs text-red-300/90 mt-2">Équipe pleine</span>
@@ -134,7 +123,7 @@ export function RegisterForm() {
           <p className="mt-2 text-xs text-red-300">{selectedOption.blockReason}</p>
         )}
         <p className="mt-2 text-xs text-muted">
-          Équipes équilibrées par effectif (+1 max) et par la puissance totale des rangs de départ.
+          Si une équipe a 1 joueur de plus, elle est fermée jusqu&apos;à ce que ce soit équilibré.
         </p>
       </fieldset>
 
