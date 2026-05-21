@@ -4,6 +4,7 @@ import { listPlayersByTeam } from "@/lib/players";
 import {
   canJoinTeam,
   getTeamCounts,
+  getTeamStartPowers,
   isValidTeam,
   teamBlockReason,
 } from "@/lib/teams";
@@ -13,13 +14,15 @@ import {
   divisionRequired,
   isValidDivision,
   isValidTier,
+  rankToScore,
 } from "@/lib/ranks";
 
 export async function GET() {
   try {
     const teams = await listPlayersByTeam();
     const counts = await getTeamCounts();
-    return NextResponse.json({ ...teams, counts });
+    const powers = await getTeamStartPowers();
+    return NextResponse.json({ ...teams, counts, powers });
   } catch (e) {
     console.error(e);
     return NextResponse.json(
@@ -56,14 +59,6 @@ export async function POST(request: Request) {
       where: { gameName_tagLine: { gameName, tagLine } },
     });
 
-    const counts = await getTeamCounts(existing?.id);
-    if (!canJoinTeam(team, counts)) {
-      return NextResponse.json(
-        { error: teamBlockReason(team, counts) },
-        { status: 400 }
-      );
-    }
-
     if (!isValidTier(startTier)) {
       return NextResponse.json({ error: "Rang de départ invalide" }, { status: 400 });
     }
@@ -73,6 +68,16 @@ export async function POST(request: Request) {
     }
 
     const division = divisionRequired(startTier) ? startDivision : "I";
+    const newStartScore = rankToScore(startTier, division, startLp);
+
+    const counts = await getTeamCounts(existing?.id);
+    const powers = await getTeamStartPowers(existing?.id);
+    if (!canJoinTeam(team, counts, powers, newStartScore)) {
+      return NextResponse.json(
+        { error: teamBlockReason(team, counts, powers, newStartScore) },
+        { status: 400 }
+      );
+    }
 
     let stats: {
       tier: string;
