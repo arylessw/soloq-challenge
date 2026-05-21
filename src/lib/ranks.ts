@@ -49,18 +49,40 @@ const DIVISION_ORDER: Record<Division, number> = {
   I: 3,
 };
 
-/** Score linéaire pour comparer / trier les rangs (LP inclus). */
+/** Tier > division > LP — un Or IV 0 LP reste au-dessus d'un Argent I 99 LP */
+export function compareRankHierarchy(
+  tierA: string,
+  divisionA: string,
+  lpA: number,
+  tierB: string,
+  divisionB: string,
+  lpB: number
+): number {
+  const tA = TIER_ORDER[(tierA.toUpperCase() as Tier)] ?? 0;
+  const tB = TIER_ORDER[(tierB.toUpperCase() as Tier)] ?? 0;
+  if (tA !== tB) return tA - tB;
+
+  if (tA >= TIER_ORDER.MASTER) return lpA - lpB;
+
+  const dA = DIVISION_ORDER[(divisionA.toUpperCase() as Division)] ?? 0;
+  const dB = DIVISION_ORDER[(divisionB.toUpperCase() as Division)] ?? 0;
+  if (dA !== dB) return dA - dB;
+
+  return lpA - lpB;
+}
+
+/** Score linéaire (cohérent avec la hiérarchie tier → division → LP) */
 export function rankToScore(tier: string, division: string, lp: number): number {
   const t = tier.toUpperCase() as Tier;
   const tierIdx = TIER_ORDER[t] ?? 0;
 
   if (tierIdx >= TIER_ORDER.MASTER) {
-    return tierIdx * 4000 + lp;
+    return tierIdx * 10_000 + lp;
   }
 
   const div = division.toUpperCase() as Division;
   const divIdx = DIVISION_ORDER[div] ?? 0;
-  return tierIdx * 4000 + divIdx * 400 + lp;
+  return tierIdx * 10_000 + divIdx * 500 + lp;
 }
 
 export function formatRank(tier: string, division: string, lp: number): string {

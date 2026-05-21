@@ -124,7 +124,7 @@ export function Leaderboard() {
         <div className="text-sm text-muted space-y-1">
           <p>
             {players.length} joueur{players.length !== 1 ? "s" : ""} — tri par
-            progression
+            progression depuis le rang de départ
           </p>
           {players.length > 0 && (
             <p className="flex flex-wrap items-center gap-2 text-xs">
