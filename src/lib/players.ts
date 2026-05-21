@@ -3,6 +3,7 @@ import {
   compareRankHierarchy,
   formatRank,
   progressBetween,
+  rankToScore,
 } from "@/lib/ranks";
 
 export type PlayerView = {
@@ -101,32 +102,39 @@ function playerProgress(p: {
   );
 }
 
+function currentRankScore(p: {
+  currentTier: string | null;
+  currentDivision: string | null;
+  currentLp: number | null;
+}): number {
+  if (!p.currentTier || p.currentDivision == null || p.currentLp == null) {
+    return -1;
+  }
+  return rankToScore(p.currentTier, p.currentDivision, p.currentLp);
+}
+
 export async function listPlayers(): Promise<PlayerView[]> {
   const players = await prisma.player.findMany();
 
   players.sort((a, b) => {
-    const progA = playerProgress(a);
-    const progB = playerProgress(b);
-    if (progB !== progA) return progB - progA;
+    const scoreA = currentRankScore(a);
+    const scoreB = currentRankScore(b);
 
-    if (
-      a.currentTier &&
-      a.currentDivision != null &&
-      a.currentLp != null &&
-      b.currentTier &&
-      b.currentDivision != null &&
-      b.currentLp != null
-    ) {
+    // 1. Rang actuel d'abord (Or > Argent > … même à -500000 pts de progression)
+    if (scoreA >= 0 && scoreB >= 0 && scoreA !== scoreB) {
       return compareRankHierarchy(
-        b.currentTier,
-        b.currentDivision,
-        b.currentLp,
-        a.currentTier,
-        a.currentDivision,
-        a.currentLp
+        b.currentTier!,
+        b.currentDivision!,
+        b.currentLp!,
+        a.currentTier!,
+        a.currentDivision!,
+        a.currentLp!
       );
     }
-    return 0;
+    if (scoreB !== scoreA) return scoreB - scoreA;
+
+    // 2. Même palier : progression
+    return playerProgress(b) - playerProgress(a);
   });
 
   return players.map(toView);
