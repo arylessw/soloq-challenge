@@ -5,8 +5,11 @@ import {
   progressBetween,
 } from "@/lib/ranks";
 
+import type { Team } from "@/lib/teams";
+
 export type PlayerView = {
   id: string;
+  team: Team;
   gameName: string;
   tagLine: string;
   riotId: string;
@@ -23,6 +26,7 @@ export type PlayerView = {
 
 function toView(p: {
   id: string;
+  team: string;
   gameName: string;
   tagLine: string;
   startTier: string;
@@ -63,6 +67,7 @@ function toView(p: {
 
   return {
     id: p.id,
+    team: p.team as Team,
     gameName: p.gameName,
     tagLine: p.tagLine,
     riotId: `${p.gameName}#${p.tagLine}`,
@@ -101,10 +106,8 @@ function playerProgress(p: {
   );
 }
 
-export async function listPlayers(): Promise<PlayerView[]> {
-  const players = await prisma.player.findMany();
-
-  players.sort((a, b) => {
+function sortPlayers<T extends Parameters<typeof playerProgress>[0]>(players: T[]): T[] {
+  return [...players].sort((a, b) => {
     const progA = playerProgress(a);
     const progB = playerProgress(b);
     if (progB !== progA) return progB - progA;
@@ -129,8 +132,21 @@ export async function listPlayers(): Promise<PlayerView[]> {
     }
     return 0;
   });
+}
 
+export async function listPlayers(): Promise<PlayerView[]> {
+  const players = sortPlayers(await prisma.player.findMany());
   return players.map(toView);
+}
+
+export async function listPlayersByTeam(): Promise<{
+  TEAM1: PlayerView[];
+  TEAM2: PlayerView[];
+}> {
+  const all = await prisma.player.findMany();
+  const team1 = sortPlayers(all.filter((p) => p.team === "TEAM1")).map(toView);
+  const team2 = sortPlayers(all.filter((p) => p.team === "TEAM2")).map(toView);
+  return { TEAM1: team1, TEAM2: team2 };
 }
 
 export { toView };

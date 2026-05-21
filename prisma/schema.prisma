@@ -9,6 +9,7 @@ datasource db {
 
 model Player {
   id              String    @id @default(cuid())
+  team            String
   gameName        String
   tagLine         String
   puuid           String?

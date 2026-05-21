@@ -1,0 +1,34 @@
+═══════════════════════════════════════════════════════
+  POUSSER SUR GITHUB SANS TERMINAL CURSOR
+═══════════════════════════════════════════════════════
+
+ÉTAPE 1 — Créer le repo sur le site
+  → https://github.com/new
+  → Nom : soloq-challenge
+  → NE PAS cocher "Add README"
+  → Create repository
+
+ÉTAPE 2 — Double-clic sur ce fichier dans le dossier du projet :
+  
+     git-push.cmd
+
+  Une fenêtre noire s'ouvre → colle l'URL que GitHub affiche, ex :
+  https://github.com/TON_PSEUDO/soloq-challenge.git
+
+  Entrée → connexion GitHub si demandé → terminé.
+
+───────────────────────────────────────────────────────
+
+AUTRE : lancer le site sans terminal Cursor
+  → double-clic sur : dev.cmd
+
+───────────────────────────────────────────────────────
+
+Ouvrir le terminal dans Cursor (si tu veux réessayer) :
+  • Raccourci : Ctrl + ù   (ou Ctrl + `)
+  • Menu : View → Terminal
+  • Ctrl + Shift + P → tape "Terminal: Create New Terminal"
+
+Si le panneau du bas est caché : Ctrl + J
+
+═══════════════════════════════════════════════════════

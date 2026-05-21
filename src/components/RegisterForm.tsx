@@ -1,14 +1,25 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DIVISIONS, TIERS, TIER_LABELS, divisionRequired } from "@/lib/ranks";
 import type { Tier } from "@/lib/ranks";
+import { TEAM_LABELS, type Team } from "@/lib/teams";
+
+type TeamOption = {
+  id: Team;
+  label: string;
+  count: number;
+  canJoin: boolean;
+  blockReason: string | null;
+};
 
 export function RegisterForm() {
   const router = useRouter();
   const [gameName, setGameName] = useState("");
   const [tagLine, setTagLine] = useState("");
+  const [team, setTeam] = useState<Team>("TEAM1");
+  const [teamOptions, setTeamOptions] = useState<TeamOption[]>([]);
   const [startTier, setStartTier] = useState<Tier>("SILVER");
   const [startDivision, setStartDivision] = useState("IV");
   const [startLp, setStartLp] = useState(0);
@@ -16,6 +27,17 @@ export function RegisterForm() {
   const [error, setError] = useState<string | null>(null);
 
   const needsDivision = divisionRequired(startTier);
+
+  useEffect(() => {
+    fetch("/api/teams")
+      .then((r) => r.json())
+      .then((data) => {
+        setTeamOptions(data.teams ?? []);
+        const firstOpen = (data.teams as TeamOption[])?.find((t) => t.canJoin);
+        if (firstOpen) setTeam(firstOpen.id);
+      })
+      .catch(() => {});
+  }, []);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -37,6 +59,7 @@ export function RegisterForm() {
         body: JSON.stringify({
           gameName: name,
           tagLine: tag,
+          team,
           startTier,
           startDivision: needsDivision ? startDivision : "I",
           startLp,
@@ -53,8 +76,54 @@ export function RegisterForm() {
     }
   }
 
+  const selectedOption = teamOptions.find((t) => t.id === team);
+
   return (
     <form onSubmit={onSubmit} className="card max-w-lg mx-auto space-y-5">
+      <fieldset>
+        <legend className="text-gold font-medium mb-3">Équipe</legend>
+        <div className="grid grid-cols-2 gap-3">
+          {(["TEAM1", "TEAM2"] as Team[]).map((id) => {
+            const opt = teamOptions.find((t) => t.id === id);
+            const canJoin = opt?.canJoin ?? true;
+            const count = opt?.count ?? 0;
+            return (
+              <label
+                key={id}
+                className={`relative flex cursor-pointer flex-col rounded-lg border p-4 transition ${
+                  team === id
+                    ? id === "TEAM1"
+                      ? "border-blue-400/60 bg-blue-500/10"
+                      : "border-red-400/60 bg-red-500/10"
+                    : "border-white/10 hover:border-white/20"
+                } ${!canJoin ? "cursor-not-allowed opacity-50" : ""}`}
+              >
+                <input
+                  type="radio"
+                  name="team"
+                  value={id}
+                  checked={team === id}
+                  disabled={!canJoin}
+                  onChange={() => setTeam(id)}
+                  className="sr-only"
+                />
+                <span className="font-medium">{TEAM_LABELS[id]}</span>
+                <span className="text-xs text-muted mt-1">{count} joueur{count !== 1 ? "s" : ""}</span>
+                {!canJoin && (
+                  <span className="text-xs text-red-300/90 mt-2">Équipe pleine</span>
+                )}
+              </label>
+            );
+          })}
+        </div>
+        {selectedOption?.blockReason && team === selectedOption.id && !selectedOption.canJoin && (
+          <p className="mt-2 text-xs text-red-300">{selectedOption.blockReason}</p>
+        )}
+        <p className="mt-2 text-xs text-muted">
+          Si une équipe a 1 joueur de plus, elle est fermée jusqu&apos;à ce que ce soit équilibré.
+        </p>
+      </fieldset>
+
       <div>
         <label className="label" htmlFor="gameName">
           Pseudo (Riot ID)
@@ -83,7 +152,6 @@ export function RegisterForm() {
         />
         <p className="mt-1 text-xs text-muted">
           Copie ton Riot ID depuis le client LoL (Profil → icône copier).
-          Le tag n&apos;est pas toujours &quot;EUW&quot; — utilise le tien exact.
         </p>
       </div>
 
@@ -154,14 +222,13 @@ export function RegisterForm() {
         </p>
       )}
 
-      <button type="submit" disabled={loading} className="btn-primary w-full">
+      <button
+        type="submit"
+        disabled={loading || selectedOption?.canJoin === false}
+        className="btn-primary w-full disabled:opacity-50"
+      >
         {loading ? "Vérification Riot API…" : "S'inscrire au défi"}
       </button>
-
-      <p className="text-xs text-muted text-center">
-        Si tu n&apos;es pas encore classé en solo/duo, le rang de départ que tu
-        choisis sera utilisé. Sinon, le rang actuel est lu via l&apos;API Riot.
-      </p>
     </form>
   );
 }

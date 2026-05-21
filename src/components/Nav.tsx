@@ -3,7 +3,6 @@ import Link from "next/link";
 const links = [
   { href: "/", label: "Classement" },
   { href: "/inscription", label: "S'inscrire" },
-  { href: "/regles", label: "Règles" },
 ];
 
 export function Nav() {
