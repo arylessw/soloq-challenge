@@ -1,0 +1,28 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Player {
+  id              String    @id @default(cuid())
+  gameName        String
+  tagLine         String
+  puuid           String?
+  summonerId      String?
+  startTier       String
+  startDivision   String
+  startLp         Int       @default(0)
+  currentTier     String?
+  currentDivision String?
+  currentLp       Int?
+  wins            Int?
+  losses          Int?
+  lastSyncedAt    DateTime?
+  createdAt       DateTime  @default(now())
+
+  @@unique([gameName, tagLine])
+}
