@@ -1,13 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { listPlayersByTeam } from "@/lib/players";
-import {
-  canJoinTeam,
-  getTeamCounts,
-  isValidTeam,
-  teamBlockReason,
-} from "@/lib/teams";
-import type { Team } from "@/lib/teams";
+import { listPlayers } from "@/lib/players";
 import { fetchAccount, fetchSoloQueue } from "@/lib/riot";
 import {
   divisionRequired,
@@ -17,9 +10,8 @@ import {
 
 export async function GET() {
   try {
-    const teams = await listPlayersByTeam();
-    const counts = await getTeamCounts();
-    return NextResponse.json({ ...teams, counts });
+    const players = await listPlayers();
+    return NextResponse.json(players);
   } catch (e) {
     console.error(e);
     return NextResponse.json(
@@ -39,7 +31,6 @@ export async function POST(request: Request) {
       .trim()
       .toUpperCase();
     const startLp = Math.max(0, Math.min(100, Number(body.startLp) || 0));
-    const team = String(body.team ?? "").trim().toUpperCase() as Team;
 
     if (!gameName || !tagLine) {
       return NextResponse.json(
@@ -47,14 +38,6 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-
-    if (!isValidTeam(team)) {
-      return NextResponse.json({ error: "Équipe invalide" }, { status: 400 });
-    }
-
-    const existing = await prisma.player.findUnique({
-      where: { gameName_tagLine: { gameName, tagLine } },
-    });
 
     if (!isValidTier(startTier)) {
       return NextResponse.json({ error: "Rang de départ invalide" }, { status: 400 });
@@ -65,14 +48,6 @@ export async function POST(request: Request) {
     }
 
     const division = divisionRequired(startTier) ? startDivision : "I";
-
-    const counts = await getTeamCounts(existing?.id);
-    if (!canJoinTeam(team, counts)) {
-      return NextResponse.json(
-        { error: teamBlockReason(team, counts) },
-        { status: 400 }
-      );
-    }
 
     let stats: {
       tier: string;
@@ -118,7 +93,6 @@ export async function POST(request: Request) {
         gameName_tagLine: { gameName, tagLine },
       },
       create: {
-        team,
         gameName,
         tagLine,
         puuid: stats.puuid,
@@ -134,7 +108,6 @@ export async function POST(request: Request) {
         lastSyncedAt: new Date(),
       },
       update: {
-        team,
         puuid: stats.puuid,
         summonerId: stats.summonerId,
         startTier,

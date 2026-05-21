@@ -8,8 +8,7 @@ export default function HomePage() {
           Classement SoloQ
         </h1>
         <p className="text-muted max-w-xl mx-auto">
-          Deux équipes s&apos;affrontent — classement par progression dans
-          chaque équipe. EUW uniquement.
+          Classement par progression depuis le rang de départ. EUW uniquement.
         </p>
       </header>
       <Leaderboard />

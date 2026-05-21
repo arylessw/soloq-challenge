@@ -2,15 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { PlayerView } from "@/lib/players";
-import { TEAM_LABELS, type Team } from "@/lib/teams";
 
 const AUTO_REFRESH_MS = 3 * 60 * 1000;
-
-type LeaderboardData = {
-  TEAM1: PlayerView[];
-  TEAM2: PlayerView[];
-  counts: { TEAM1: number; TEAM2: number };
-};
 
 function formatRelativeTime(date: Date): string {
   const sec = Math.floor((Date.now() - date.getTime()) / 1000);
@@ -26,81 +19,8 @@ function formatCountdown(seconds: number): string {
   return m > 0 ? `${m} min ${s.toString().padStart(2, "0")} s` : `${s} s`;
 }
 
-function TeamTable({
-  team,
-  players,
-  accent,
-}: {
-  team: Team;
-  players: PlayerView[];
-  accent: "blue" | "red";
-}) {
-  const border = accent === "blue" ? "border-blue-400/30" : "border-red-400/30";
-  const title = accent === "blue" ? "text-blue-300" : "text-red-300";
-
-  return (
-    <div className={`card border ${border}`}>
-      <h2 className={`font-display text-xl mb-4 ${title}`}>
-        {TEAM_LABELS[team]}
-        <span className="ml-2 text-sm font-sans font-normal text-muted">
-          ({players.length})
-        </span>
-      </h2>
-      {players.length === 0 ? (
-        <p className="text-muted text-sm py-6 text-center">Aucun joueur</p>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead>
-              <tr className="border-b border-white/10 text-muted uppercase text-xs tracking-wider">
-                <th className="py-2 pr-3">#</th>
-                <th className="py-2 pr-3">Joueur</th>
-                <th className="py-2 pr-3">Actuel</th>
-                <th className="py-2 pr-3">Prog.</th>
-                <th className="py-2">WR</th>
-              </tr>
-            </thead>
-            <tbody>
-              {players.map((p, i) => (
-                <tr
-                  key={p.id}
-                  className="border-b border-white/5 hover:bg-white/5"
-                >
-                  <td className="py-3 pr-3 font-display text-gold">{i + 1}</td>
-                  <td className="py-3 pr-3 font-medium">{p.riotId}</td>
-                  <td className="py-3 pr-3 text-muted text-xs">
-                    {p.currentRank ?? "—"}
-                  </td>
-                  <td className="py-3 pr-3">
-                    {p.progressLabel ? (
-                      <span
-                        className={
-                          (p.progress ?? 0) >= 0
-                            ? "text-emerald-400 font-semibold"
-                            : "text-red-400"
-                        }
-                      >
-                        {p.progressLabel}
-                      </span>
-                    ) : (
-                      "—"
-                    )}
-                  </td>
-                  <td className="py-3 text-muted">
-                    {p.winrate != null ? `${p.winrate}%` : "—"}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
-  );
-}
-
 export function Leaderboard() {
-  const [data, setData] = useState<LeaderboardData | null>(null);
+  const [players, setPlayers] = useState<PlayerView[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -109,15 +29,12 @@ export function Leaderboard() {
   const syncingRef = useRef(false);
   const lastRefreshRef = useRef<Date | null>(null);
 
-  const totalPlayers =
-    (data?.TEAM1.length ?? 0) + (data?.TEAM2.length ?? 0);
-
   const load = useCallback(async () => {
     setError(null);
     try {
       const res = await fetch("/api/players", { cache: "no-store" });
       if (!res.ok) throw new Error("Chargement impossible");
-      setData(await res.json());
+      setPlayers(await res.json());
     } catch {
       setError("Impossible de charger le classement");
     } finally {
@@ -127,7 +44,7 @@ export function Leaderboard() {
 
   const syncAll = useCallback(
     async (silent = false) => {
-      if (syncingRef.current || totalPlayers === 0) return;
+      if (syncingRef.current || players.length === 0) return;
 
       syncingRef.current = true;
       if (!silent) setSyncing(true);
@@ -135,8 +52,8 @@ export function Leaderboard() {
 
       try {
         const res = await fetch("/api/sync", { method: "POST" });
-        const body = await res.json();
-        if (!res.ok) throw new Error(body.error ?? "Sync échouée");
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error ?? "Sync échouée");
         await load();
         const now = new Date();
         lastRefreshRef.current = now;
@@ -151,7 +68,7 @@ export function Leaderboard() {
         if (!silent) setSyncing(false);
       }
     },
-    [load, totalPlayers]
+    [load, players.length]
   );
 
   useEffect(() => {
@@ -159,7 +76,7 @@ export function Leaderboard() {
   }, [load]);
 
   useEffect(() => {
-    if (loading || totalPlayers === 0) return;
+    if (loading || players.length === 0) return;
 
     const initial = setTimeout(() => syncAll(true), 2000);
     const interval = setInterval(() => {
@@ -179,7 +96,7 @@ export function Leaderboard() {
       clearInterval(interval);
       document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [loading, totalPlayers, syncAll]);
+  }, [loading, players.length, syncAll]);
 
   useEffect(() => {
     if (!lastRefresh) return;
@@ -199,10 +116,10 @@ export function Leaderboard() {
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div className="text-sm text-muted space-y-1">
           <p>
-            {totalPlayers} joueur{totalPlayers !== 1 ? "s" : ""} — Équipe 1 :{" "}
-            {data?.counts.TEAM1 ?? 0} · Équipe 2 : {data?.counts.TEAM2 ?? 0}
+            {players.length} joueur{players.length !== 1 ? "s" : ""} — tri par
+            progression
           </p>
-          {totalPlayers > 0 && (
+          {players.length > 0 && (
             <p className="flex flex-wrap items-center gap-2 text-xs">
               <span
                 className={`inline-block h-2 w-2 rounded-full ${
@@ -226,7 +143,7 @@ export function Leaderboard() {
         <button
           type="button"
           onClick={() => syncAll(false)}
-          disabled={syncing || totalPlayers === 0}
+          disabled={syncing || players.length === 0}
           className="btn-primary disabled:opacity-50"
         >
           {syncing ? "Sync en cours…" : "Actualiser maintenant"}
@@ -239,7 +156,7 @@ export function Leaderboard() {
         </p>
       )}
 
-      {totalPlayers === 0 ? (
+      {players.length === 0 ? (
         <div className="card text-center py-12">
           <p className="text-muted mb-4">Aucun joueur inscrit.</p>
           <a href="/inscription" className="btn-primary inline-block">
@@ -247,9 +164,60 @@ export function Leaderboard() {
           </a>
         </div>
       ) : (
-        <div className="grid gap-6 lg:grid-cols-2">
-          <TeamTable team="TEAM1" players={data?.TEAM1 ?? []} accent="blue" />
-          <TeamTable team="TEAM2" players={data?.TEAM2 ?? []} accent="red" />
+        <div className="overflow-x-auto card">
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="border-b border-gold/20 text-muted uppercase text-xs tracking-wider">
+                <th className="py-3 pr-4">#</th>
+                <th className="py-3 pr-4">Joueur</th>
+                <th className="py-3 pr-4">Départ</th>
+                <th className="py-3 pr-4">Actuel</th>
+                <th className="py-3 pr-4">Progression</th>
+                <th className="py-3 pr-4">W/L</th>
+                <th className="py-3">WR</th>
+              </tr>
+            </thead>
+            <tbody>
+              {players.map((p, i) => (
+                <tr
+                  key={p.id}
+                  className="border-b border-white/5 hover:bg-white/5 transition"
+                >
+                  <td className="py-4 pr-4 font-display text-gold text-lg">
+                    {i + 1}
+                  </td>
+                  <td className="py-4 pr-4 font-medium">{p.riotId}</td>
+                  <td className="py-4 pr-4 text-muted">{p.startRank}</td>
+                  <td className="py-4 pr-4">
+                    {p.currentRank ?? <span className="text-muted">—</span>}
+                  </td>
+                  <td className="py-4 pr-4">
+                    {p.progressLabel ? (
+                      <span
+                        className={
+                          (p.progress ?? 0) >= 0
+                            ? "text-emerald-400 font-semibold"
+                            : "text-red-400"
+                        }
+                      >
+                        {p.progressLabel}
+                      </span>
+                    ) : (
+                      <span className="text-muted">—</span>
+                    )}
+                  </td>
+                  <td className="py-4 pr-4 text-muted">
+                    {p.wins != null && p.losses != null
+                      ? `${p.wins}V / ${p.losses}D`
+                      : "—"}
+                  </td>
+                  <td className="py-4">
+                    {p.winrate != null ? `${p.winrate}%` : "—"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>

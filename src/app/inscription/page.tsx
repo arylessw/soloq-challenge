@@ -6,7 +6,7 @@ export default function InscriptionPage() {
       <header className="mb-8 text-center">
         <h1 className="font-display text-3xl text-gold mb-2">S&apos;inscrire</h1>
         <p className="text-muted text-sm">
-          Choisis ton équipe (équilibrage automatique) et ton rang de départ.
+          Ton Riot ID EUW et ton rang de départ pour le défi.
         </p>
       </header>
       <RegisterForm />
