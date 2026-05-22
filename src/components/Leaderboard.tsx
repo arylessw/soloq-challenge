@@ -192,12 +192,13 @@ export function Leaderboard() {
                     {p.currentRank ?? <span className="text-muted">—</span>}
                   </td>
                   <td className="py-4 pr-4">
-                    {p.progressLabel ? (
+                    {p.progressLabel && p.progressLabel !== "—" ? (
                       <span
                         className={
-                          (p.progress ?? 0) >= 0
-                            ? "text-emerald-400 font-semibold"
-                            : "text-red-400"
+                          p.progressLabel.startsWith("-") ||
+                          p.progressLabel.startsWith("−")
+                            ? "text-red-400 font-semibold"
+                            : "text-emerald-400 font-semibold"
                         }
                       >
                         {p.progressLabel}

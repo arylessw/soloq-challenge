@@ -1,9 +1,9 @@
 import { prisma } from "@/lib/db";
 import {
   compareTierOnly,
+  formatProgressLabel,
   formatRank,
   progressBetween,
-  tierIndex,
 } from "@/lib/ranks";
 
 export type PlayerView = {
@@ -52,19 +52,14 @@ function toView(p: {
       p.currentDivision!,
       p.currentLp!
     );
-
-    const tierGap =
-      tierIndex(p.currentTier!) - tierIndex(p.startTier);
-    if (tierGap !== 0) {
-      const n = Math.abs(tierGap);
-      progressLabel =
-        tierGap > 0
-          ? `+${n} rank${n > 1 ? "s" : ""}`
-          : `-${n} rank${n > 1 ? "s" : ""}`;
-    } else {
-      progressLabel =
-        progress >= 0 ? `+${progress} pts` : `${progress} pts`;
-    }
+    progressLabel = formatProgressLabel(
+      p.startTier,
+      p.startDivision,
+      p.startLp,
+      p.currentTier!,
+      p.currentDivision!,
+      p.currentLp!
+    );
   }
 
   const totalGames = (p.wins ?? 0) + (p.losses ?? 0);
