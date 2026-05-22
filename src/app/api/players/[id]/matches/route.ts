@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { rawMatchesToViews } from "@/lib/matches";
-import { fetchRecentRankedMatches } from "@/lib/riot-matches";
+import {
+  fetchRecentRankedMatches,
+  MATCH_HISTORY_COUNT,
+} from "@/lib/riot-matches";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+export const maxDuration = 90;
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -27,7 +30,7 @@ export async function GET(_request: Request, { params }: Params) {
   try {
     const sinceEpochSec = Math.floor(player.createdAt.getTime() / 1000);
     const raw = await fetchRecentRankedMatches(player.puuid, {
-      count: 15,
+      count: MATCH_HISTORY_COUNT,
       sinceEpochSec,
     });
 

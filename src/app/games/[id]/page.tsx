@@ -58,7 +58,7 @@ export default async function PlayerGamesPage({ params }: Props) {
       </header>
 
       <h2 className="font-display text-xl text-gold mb-4">
-        Historique ranked solo
+        20 dernières parties ranked solo
       </h2>
       <PlayerMatchHistory playerId={id} />
     </div>

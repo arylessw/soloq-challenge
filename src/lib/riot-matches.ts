@@ -3,9 +3,10 @@ import { riotFetch } from "@/lib/riot";
 const REGIONAL = "https://europe.api.riotgames.com";
 const RANKED_SOLO_QUEUE = 420;
 const MATCH_FETCH_DELAY_MS = 250;
-const DEFAULT_MATCH_COUNT = 15;
+export const MATCH_HISTORY_COUNT = 20;
+const DEFAULT_MATCH_COUNT = MATCH_HISTORY_COUNT;
 
-type MatchDto = {
+export type MatchDto = {
   metadata: { matchId: string };
   info: {
     gameCreation: number;
@@ -15,14 +16,19 @@ type MatchDto = {
   };
 };
 
-type MatchParticipantDto = {
+export type MatchParticipantDto = {
   puuid: string;
+  teamId: number;
   championId: number;
   championName: string;
+  riotIdGameName: string;
+  riotIdTagline: string;
   kills: number;
   deaths: number;
   assists: number;
   win: boolean;
+  totalDamageDealtToChampions: number;
+  goldEarned: number;
   totalMinionsKilled: number;
   neutralMinionsKilled: number;
 };
@@ -45,7 +51,7 @@ export async function fetchRankedSoloMatchIds(
   puuid: string,
   opts?: { count?: number; startTime?: number }
 ): Promise<string[]> {
-  const count = Math.min(opts?.count ?? DEFAULT_MATCH_COUNT, 20);
+  const count = Math.min(opts?.count ?? DEFAULT_MATCH_COUNT, MATCH_HISTORY_COUNT);
   const params = new URLSearchParams({
     start: "0",
     count: String(count),
