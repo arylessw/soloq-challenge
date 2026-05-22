@@ -15,7 +15,7 @@ function headers(): HeadersInit {
   return { "X-Riot-Token": getApiKey() };
 }
 
-async function riotFetch<T>(url: string): Promise<T> {
+export async function riotFetch<T>(url: string): Promise<T> {
   const res = await fetch(url, { headers: headers(), next: { revalidate: 0 } });
   if (res.status === 401) {
     throw new Error(

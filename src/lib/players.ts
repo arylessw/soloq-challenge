@@ -99,6 +99,12 @@ function playerLpNet(p: {
   ).lpNet;
 }
 
+export async function getPlayerById(id: string): Promise<PlayerView | null> {
+  const player = await prisma.player.findUnique({ where: { id } });
+  if (!player) return null;
+  return toView(player);
+}
+
 export async function listPlayers(): Promise<PlayerView[]> {
   const players = await prisma.player.findMany();
 

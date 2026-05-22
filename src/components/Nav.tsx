@@ -2,6 +2,7 @@ import Link from "next/link";
 
 const links = [
   { href: "/", label: "Classement" },
+  { href: "/games", label: "Games" },
   { href: "/inscription", label: "S'inscrire" },
 ];
 

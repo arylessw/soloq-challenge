@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { PlayerView } from "@/lib/players";
 
@@ -186,7 +187,14 @@ export function Leaderboard() {
                   <td className="py-4 pr-4 font-display text-gold text-lg">
                     {i + 1}
                   </td>
-                  <td className="py-4 pr-4 font-medium">{p.riotId}</td>
+                  <td className="py-4 pr-4 font-medium">
+                    <Link
+                      href={`/games/${p.id}`}
+                      className="hover:text-gold-light transition"
+                    >
+                      {p.riotId}
+                    </Link>
+                  </td>
                   <td className="py-4 pr-4 text-muted">{p.startRank}</td>
                   <td className="py-4 pr-4">
                     {p.currentRank ?? <span className="text-muted">—</span>}
