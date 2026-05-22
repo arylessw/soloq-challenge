@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { compareTierOnly, formatLpProgress, formatRank } from "@/lib/ranks";
+import { compareTierOnly, computeLpProgress, formatLpProgress, formatRank } from "@/lib/ranks";
 
 export type PlayerView = {
   id: string;
@@ -8,8 +8,7 @@ export type PlayerView = {
   riotId: string;
   startRank: string;
   currentRank: string | null;
-  lpGained: number;
-  lpLost: number;
+  lpNet: number | null;
   progressLabel: string | null;
   wins: number | null;
   losses: number | null;
@@ -38,7 +37,25 @@ function toView(p: {
   const hasCurrent =
     p.currentTier && p.currentDivision != null && p.currentLp != null;
 
-  const progressLabel = formatLpProgress(p.lpGained, p.lpLost);
+  let lpNet: number | null = null;
+  let progressLabel: string | null = null;
+
+  if (hasCurrent) {
+    const progress = computeLpProgress(
+      {
+        tier: p.startTier,
+        division: p.startDivision,
+        lp: p.startLp,
+      },
+      {
+        tier: p.currentTier!,
+        division: p.currentDivision!,
+        lp: p.currentLp!,
+      }
+    );
+    lpNet = progress.lpNet;
+    progressLabel = formatLpProgress(lpNet);
+  }
 
   const totalGames = (p.wins ?? 0) + (p.losses ?? 0);
   const winrate =
@@ -55,8 +72,7 @@ function toView(p: {
     currentRank: hasCurrent
       ? formatRank(p.currentTier!, p.currentDivision!, p.currentLp!)
       : null,
-    lpGained: p.lpGained,
-    lpLost: p.lpLost,
+    lpNet,
     progressLabel,
     wins: p.wins,
     losses: p.losses,
@@ -66,8 +82,21 @@ function toView(p: {
   };
 }
 
-function playerLpNet(p: { lpGained: number; lpLost: number }): number {
-  return p.lpGained - p.lpLost;
+function playerLpNet(p: {
+  startTier: string;
+  startDivision: string;
+  startLp: number;
+  currentTier: string | null;
+  currentDivision: string | null;
+  currentLp: number | null;
+}): number {
+  if (!p.currentTier || p.currentDivision == null || p.currentLp == null) {
+    return -9999;
+  }
+  return computeLpProgress(
+    { tier: p.startTier, division: p.startDivision, lp: p.startLp },
+    { tier: p.currentTier, division: p.currentDivision, lp: p.currentLp }
+  ).lpNet;
 }
 
 export async function listPlayers(): Promise<PlayerView[]> {

@@ -6,7 +6,7 @@ import {
   divisionRequired,
   isValidDivision,
   isValidTier,
-  lpStepFromSnapshots,
+  computeLpProgress,
 } from "@/lib/ranks";
 
 export async function GET() {
@@ -89,7 +89,7 @@ export async function POST(request: Request) {
       }
     }
 
-    const initialLp = lpStepFromSnapshots(
+    const initialLp = computeLpProgress(
       { tier: startTier, division, lp: startLp },
       { tier: stats.tier, division: stats.division, lp: stats.lp }
     );
@@ -109,8 +109,8 @@ export async function POST(request: Request) {
         currentTier: stats.tier,
         currentDivision: stats.division,
         currentLp: stats.lp,
-        lpGained: initialLp.gained,
-        lpLost: initialLp.lost,
+        lpGained: initialLp.lpGained,
+        lpLost: initialLp.lpLost,
         wins: stats.wins,
         losses: stats.losses,
         lastSyncedAt: new Date(),

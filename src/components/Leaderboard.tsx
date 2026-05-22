@@ -117,7 +117,7 @@ export function Leaderboard() {
         <div className="text-sm text-muted space-y-1">
           <p>
             {players.length} joueur{players.length !== 1 ? "s" : ""} — tri par tier
-            (Diamant = Diamant), puis LP gagnés / perdus
+            (Diamant = Diamant), puis progression LP
           </p>
           {players.length > 0 && (
             <p className="flex flex-wrap items-center gap-2 text-xs">
@@ -192,21 +192,15 @@ export function Leaderboard() {
                     {p.currentRank ?? <span className="text-muted">—</span>}
                   </td>
                   <td className="py-4 pr-4">
-                    {p.progressLabel && p.progressLabel !== "—" ? (
-                      <span className="font-semibold">
-                        {p.lpGained > 0 && (
-                          <span className="text-emerald-400">
-                            +{p.lpGained} LP gagnés
-                          </span>
-                        )}
-                        {p.lpGained > 0 && p.lpLost > 0 && (
-                          <span className="text-muted/60"> · </span>
-                        )}
-                        {p.lpLost > 0 && (
-                          <span className="text-red-400">
-                            -{p.lpLost} LP perdus
-                          </span>
-                        )}
+                    {p.lpNet != null && p.lpNet !== 0 ? (
+                      <span
+                        className={
+                          p.lpNet > 0
+                            ? "text-emerald-400 font-semibold"
+                            : "text-red-400 font-semibold"
+                        }
+                      >
+                        {p.progressLabel}
                       </span>
                     ) : (
                       <span className="text-muted">—</span>

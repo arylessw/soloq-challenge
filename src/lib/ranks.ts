@@ -126,44 +126,28 @@ export function rankToLpTotal(tier: string, division: string, lp: number): numbe
   return ti * 10_000 + divisionIndex(division) * LP_PER_DIVISION + lp;
 }
 
-/** LP gagnés / perdus entre deux snapshots (promo, démo, changement de tier). */
-export function lpStepFromSnapshots(
-  from: RankSnapshot,
-  to: RankSnapshot
-): { gained: number; lost: number } {
-  const fromTier = tierIndex(from.tier);
-  const toTier = tierIndex(to.tier);
-  const fromDiv = divisionIndex(from.division);
-  const toDiv = divisionIndex(to.division);
+/**
+ * Progression LP depuis le rang de départ : score linéaire (tier + division + LP).
+ * Une montée de division compte comme des LP gagnés, pas comme des LP perdus.
+ */
+export function computeLpProgress(
+  start: RankSnapshot,
+  current: RankSnapshot
+): { lpNet: number; lpGained: number; lpLost: number } {
+  const lpNet =
+    rankToLpTotal(current.tier, current.division, current.lp) -
+    rankToLpTotal(start.tier, start.division, start.lp);
 
-  if (
-    from.tier.toUpperCase() === to.tier.toUpperCase() &&
-    from.division.toUpperCase() === to.division.toUpperCase()
-  ) {
-    const d = to.lp - from.lp;
-    if (d >= 0) return { gained: d, lost: 0 };
-    return { gained: 0, lost: -d };
-  }
-
-  if (fromTier === toTier && toDiv > fromDiv) {
-    return { gained: (LP_PER_DIVISION - from.lp) + to.lp, lost: 0 };
-  }
-
-  if (fromTier === toTier && toDiv < fromDiv) {
-    return { gained: to.lp, lost: from.lp };
-  }
-
-  const diff = rankToLpTotal(to.tier, to.division, to.lp) - rankToLpTotal(from.tier, from.division, from.lp);
-  if (diff >= 0) return { gained: diff, lost: 0 };
-  return { gained: 0, lost: -diff };
+  return {
+    lpNet,
+    lpGained: Math.max(0, lpNet),
+    lpLost: Math.max(0, -lpNet),
+  };
 }
 
-export function formatLpProgress(lpGained: number, lpLost: number): string {
-  if (lpGained === 0 && lpLost === 0) return "—";
-  const parts: string[] = [];
-  if (lpGained > 0) parts.push(`+${lpGained} LP gagnés`);
-  if (lpLost > 0) parts.push(`-${lpLost} LP perdus`);
-  return parts.join(" · ");
+export function formatLpProgress(lpNet: number): string {
+  if (lpNet === 0) return "—";
+  return lpNet > 0 ? `+${lpNet} LP` : `${lpNet} LP`;
 }
 
 export function isValidTier(tier: string): tier is Tier {

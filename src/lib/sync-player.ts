@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { fetchAccount, fetchSoloQueue } from "@/lib/riot";
-import { lpStepFromSnapshots } from "@/lib/ranks";
+import { computeLpProgress } from "@/lib/ranks";
 
 export async function syncPlayerById(id: string): Promise<{ ok: boolean; error?: string }> {
   const player = await prisma.player.findUnique({ where: { id } });
@@ -9,42 +9,19 @@ export async function syncPlayerById(id: string): Promise<{ ok: boolean; error?:
   try {
     const stats = await fetchSoloQueue(player.gameName, player.tagLine);
 
-    const toSnapshot = {
-      tier: stats.tier,
-      division: stats.division,
-      lp: stats.lp,
-    };
-
-    let lpGained = player.lpGained;
-    let lpLost = player.lpLost;
-
-    if (lpGained === 0 && lpLost === 0) {
-      const step = lpStepFromSnapshots(
-        {
-          tier: player.startTier,
-          division: player.startDivision,
-          lp: player.startLp,
-        },
-        toSnapshot
-      );
-      lpGained = step.gained;
-      lpLost = step.lost;
-    } else if (
-      player.currentTier &&
-      player.currentDivision != null &&
-      player.currentLp != null
-    ) {
-      const step = lpStepFromSnapshots(
-        {
-          tier: player.currentTier,
-          division: player.currentDivision,
-          lp: player.currentLp,
-        },
-        toSnapshot
-      );
-      lpGained += step.gained;
-      lpLost += step.lost;
-    }
+    const progress = computeLpProgress(
+      {
+        tier: player.startTier,
+        division: player.startDivision,
+        lp: player.startLp,
+      },
+      {
+        tier: stats.tier,
+        division: stats.division,
+        lp: stats.lp,
+      }
+    );
+    const { lpGained, lpLost } = progress;
 
     await prisma.player.update({
       where: { id },
