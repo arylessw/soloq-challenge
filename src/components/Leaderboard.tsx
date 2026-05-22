@@ -117,8 +117,8 @@ export function Leaderboard() {
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div className="text-sm text-muted space-y-1">
           <p>
-            {players.length} joueur{players.length !== 1 ? "s" : ""} — tri par tier
-            (Diamant = Diamant), puis progression LP
+            {players.length} joueur{players.length !== 1 ? "s" : ""} — tri par
+            progression LP (plus de LP gagnés = plus haut)
           </p>
           {players.length > 0 && (
             <p className="flex flex-wrap items-center gap-2 text-xs">

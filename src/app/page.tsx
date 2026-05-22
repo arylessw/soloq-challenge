@@ -8,8 +8,8 @@ export default function HomePage() {
           Classement SoloQ
         </h1>
         <p className="text-muted max-w-xl mx-auto">
-          Classement par tier (pas de division), puis progression dans le même
-          tier. EUW uniquement.
+          Classement par progression LP depuis le rang de départ — le plus de
+          LP gagnés est premier. EUW uniquement.
         </p>
       </header>
       <Leaderboard />

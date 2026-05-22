@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { compareTierOnly, computeLpProgress, formatLpProgress, formatRank } from "@/lib/ranks";
+import { computeLpProgress, formatLpProgress, formatRank } from "@/lib/ranks";
 
 export type PlayerView = {
   id: string;
@@ -108,18 +108,7 @@ export async function getPlayerById(id: string): Promise<PlayerView | null> {
 export async function listPlayers(): Promise<PlayerView[]> {
   const players = await prisma.player.findMany();
 
-  players.sort((a, b) => {
-    const tierA = a.currentTier;
-    const tierB = b.currentTier;
-
-    if (tierA && tierB) {
-      const tierCmp = compareTierOnly(tierB, tierA);
-      if (tierCmp !== 0) return tierCmp;
-    } else if (tierB && !tierA) return 1;
-    else if (tierA && !tierB) return -1;
-
-    return playerLpNet(b) - playerLpNet(a);
-  });
+  players.sort((a, b) => playerLpNet(b) - playerLpNet(a));
 
   return players.map(toView);
 }
