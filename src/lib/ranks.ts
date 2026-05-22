@@ -105,44 +105,65 @@ export function formatRank(tier: string, division: string, lp: number): string {
   return `${label} ${division} — ${lp} LP`;
 }
 
-/** Entre tiers : écart de rank. Même tier : uniquement les LP (les divisions ne comptent pas). */
-export function progressBetween(
-  startTier: string,
-  _startDivision: string,
-  startLp: number,
-  currentTier: string,
-  _currentDivision: string,
-  currentLp: number
-): number {
-  const tierGap = tierIndex(currentTier) - tierIndex(startTier);
-
-  if (tierGap !== 0) {
-    return tierGap * 10_000;
-  }
-
-  return currentLp - startLp;
+export function divisionIndex(division: string): number {
+  return DIVISION_ORDER[division.toUpperCase() as Division] ?? 0;
 }
 
-export function formatProgressLabel(
-  startTier: string,
-  _startDivision: string,
-  startLp: number,
-  currentTier: string,
-  _currentDivision: string,
-  currentLp: number
-): string {
-  const tierGap = tierIndex(currentTier) - tierIndex(startTier);
+const LP_PER_DIVISION = 100;
 
-  if (tierGap !== 0) {
-    const n = Math.abs(tierGap);
-    return tierGap > 0
-      ? `+${n} rank${n > 1 ? "s" : ""}`
-      : `-${n} rank${n > 1 ? "s" : ""}`;
+export type RankSnapshot = {
+  tier: string;
+  division: string;
+  lp: number;
+};
+
+/** Score linéaire en « points LP » (100 LP par division) */
+export function rankToLpTotal(tier: string, division: string, lp: number): number {
+  const ti = tierIndex(tier);
+  if (ti >= TIER_ORDER.MASTER) {
+    return ti * 1_000_000 + lp;
+  }
+  return ti * 10_000 + divisionIndex(division) * LP_PER_DIVISION + lp;
+}
+
+/** LP gagnés / perdus entre deux snapshots (promo, démo, changement de tier). */
+export function lpStepFromSnapshots(
+  from: RankSnapshot,
+  to: RankSnapshot
+): { gained: number; lost: number } {
+  const fromTier = tierIndex(from.tier);
+  const toTier = tierIndex(to.tier);
+  const fromDiv = divisionIndex(from.division);
+  const toDiv = divisionIndex(to.division);
+
+  if (
+    from.tier.toUpperCase() === to.tier.toUpperCase() &&
+    from.division.toUpperCase() === to.division.toUpperCase()
+  ) {
+    const d = to.lp - from.lp;
+    if (d >= 0) return { gained: d, lost: 0 };
+    return { gained: 0, lost: -d };
   }
 
-  const lp = currentLp - startLp;
-  if (lp === 0) return "—";
-  return lp > 0 ? `+${lp} LP` : `${lp} LP`;
+  if (fromTier === toTier && toDiv > fromDiv) {
+    return { gained: (LP_PER_DIVISION - from.lp) + to.lp, lost: 0 };
+  }
+
+  if (fromTier === toTier && toDiv < fromDiv) {
+    return { gained: to.lp, lost: from.lp };
+  }
+
+  const diff = rankToLpTotal(to.tier, to.division, to.lp) - rankToLpTotal(from.tier, from.division, from.lp);
+  if (diff >= 0) return { gained: diff, lost: 0 };
+  return { gained: 0, lost: -diff };
+}
+
+export function formatLpProgress(lpGained: number, lpLost: number): string {
+  if (lpGained === 0 && lpLost === 0) return "—";
+  const parts: string[] = [];
+  if (lpGained > 0) parts.push(`+${lpGained} LP gagnés`);
+  if (lpLost > 0) parts.push(`-${lpLost} LP perdus`);
+  return parts.join(" · ");
 }
 
 export function isValidTier(tier: string): tier is Tier {

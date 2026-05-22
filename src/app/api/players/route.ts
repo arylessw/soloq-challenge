@@ -6,6 +6,7 @@ import {
   divisionRequired,
   isValidDivision,
   isValidTier,
+  lpStepFromSnapshots,
 } from "@/lib/ranks";
 
 export async function GET() {
@@ -88,6 +89,11 @@ export async function POST(request: Request) {
       }
     }
 
+    const initialLp = lpStepFromSnapshots(
+      { tier: startTier, division, lp: startLp },
+      { tier: stats.tier, division: stats.division, lp: stats.lp }
+    );
+
     const player = await prisma.player.upsert({
       where: {
         gameName_tagLine: { gameName, tagLine },
@@ -103,6 +109,8 @@ export async function POST(request: Request) {
         currentTier: stats.tier,
         currentDivision: stats.division,
         currentLp: stats.lp,
+        lpGained: initialLp.gained,
+        lpLost: initialLp.lost,
         wins: stats.wins,
         losses: stats.losses,
         lastSyncedAt: new Date(),
@@ -110,9 +118,6 @@ export async function POST(request: Request) {
       update: {
         puuid: stats.puuid,
         summonerId: stats.summonerId,
-        startTier,
-        startDivision: division,
-        startLp,
         currentTier: stats.tier,
         currentDivision: stats.division,
         currentLp: stats.lp,

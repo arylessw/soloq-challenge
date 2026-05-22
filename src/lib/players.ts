@@ -1,10 +1,5 @@
 import { prisma } from "@/lib/db";
-import {
-  compareTierOnly,
-  formatProgressLabel,
-  formatRank,
-  progressBetween,
-} from "@/lib/ranks";
+import { compareTierOnly, formatLpProgress, formatRank } from "@/lib/ranks";
 
 export type PlayerView = {
   id: string;
@@ -13,7 +8,8 @@ export type PlayerView = {
   riotId: string;
   startRank: string;
   currentRank: string | null;
-  progress: number | null;
+  lpGained: number;
+  lpLost: number;
   progressLabel: string | null;
   wins: number | null;
   losses: number | null;
@@ -32,6 +28,8 @@ function toView(p: {
   currentTier: string | null;
   currentDivision: string | null;
   currentLp: number | null;
+  lpGained: number;
+  lpLost: number;
   wins: number | null;
   losses: number | null;
   lastSyncedAt: Date | null;
@@ -40,27 +38,7 @@ function toView(p: {
   const hasCurrent =
     p.currentTier && p.currentDivision != null && p.currentLp != null;
 
-  let progress: number | null = null;
-  let progressLabel: string | null = null;
-
-  if (hasCurrent) {
-    progress = progressBetween(
-      p.startTier,
-      p.startDivision,
-      p.startLp,
-      p.currentTier!,
-      p.currentDivision!,
-      p.currentLp!
-    );
-    progressLabel = formatProgressLabel(
-      p.startTier,
-      p.startDivision,
-      p.startLp,
-      p.currentTier!,
-      p.currentDivision!,
-      p.currentLp!
-    );
-  }
+  const progressLabel = formatLpProgress(p.lpGained, p.lpLost);
 
   const totalGames = (p.wins ?? 0) + (p.losses ?? 0);
   const winrate =
@@ -77,7 +55,8 @@ function toView(p: {
     currentRank: hasCurrent
       ? formatRank(p.currentTier!, p.currentDivision!, p.currentLp!)
       : null,
-    progress,
+    lpGained: p.lpGained,
+    lpLost: p.lpLost,
     progressLabel,
     wins: p.wins,
     losses: p.losses,
@@ -87,25 +66,8 @@ function toView(p: {
   };
 }
 
-function playerProgress(p: {
-  startTier: string;
-  startDivision: string;
-  startLp: number;
-  currentTier: string | null;
-  currentDivision: string | null;
-  currentLp: number | null;
-}): number {
-  if (!p.currentTier || p.currentDivision == null || p.currentLp == null) {
-    return -9999;
-  }
-  return progressBetween(
-    p.startTier,
-    p.startDivision,
-    p.startLp,
-    p.currentTier,
-    p.currentDivision,
-    p.currentLp
-  );
+function playerLpNet(p: { lpGained: number; lpLost: number }): number {
+  return p.lpGained - p.lpLost;
 }
 
 export async function listPlayers(): Promise<PlayerView[]> {
@@ -121,7 +83,7 @@ export async function listPlayers(): Promise<PlayerView[]> {
     } else if (tierB && !tierA) return 1;
     else if (tierA && !tierB) return -1;
 
-    return playerProgress(b) - playerProgress(a);
+    return playerLpNet(b) - playerLpNet(a);
   });
 
   return players.map(toView);

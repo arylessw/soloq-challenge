@@ -19,6 +19,8 @@ model Player {
   currentTier     String?
   currentDivision String?
   currentLp       Int?
+  lpGained        Int       @default(0)
+  lpLost          Int       @default(0)
   wins            Int?
   losses          Int?
   lastSyncedAt    DateTime?
