@@ -105,17 +105,13 @@ export function formatRank(tier: string, division: string, lp: number): string {
   return `${label} ${division} — ${lp} LP`;
 }
 
-function divisionIndex(division: string): number {
-  return DIVISION_ORDER[division.toUpperCase() as Division] ?? 0;
-}
-
-/** Même tier : division + LP (signé). Entre tiers : écart de rank uniquement. */
+/** Entre tiers : écart de rank. Même tier : uniquement les LP (les divisions ne comptent pas). */
 export function progressBetween(
   startTier: string,
-  startDivision: string,
+  _startDivision: string,
   startLp: number,
   currentTier: string,
-  currentDivision: string,
+  _currentDivision: string,
   currentLp: number
 ): number {
   const tierGap = tierIndex(currentTier) - tierIndex(startTier);
@@ -124,21 +120,15 @@ export function progressBetween(
     return tierGap * 10_000;
   }
 
-  if (tierIndex(startTier) >= TIER_ORDER.MASTER) {
-    return currentLp - startLp;
-  }
-
-  const divDiff = divisionIndex(currentDivision) - divisionIndex(startDivision);
-  return divDiff * 500 + (currentLp - startLp);
+  return currentLp - startLp;
 }
 
-/** Libellé lisible : pas de "+400 pts" quand tu descends en division (ex. D3 → D4). */
 export function formatProgressLabel(
   startTier: string,
-  startDivision: string,
+  _startDivision: string,
   startLp: number,
   currentTier: string,
-  currentDivision: string,
+  _currentDivision: string,
   currentLp: number
 ): string {
   const tierGap = tierIndex(currentTier) - tierIndex(startTier);
@@ -148,18 +138,6 @@ export function formatProgressLabel(
     return tierGap > 0
       ? `+${n} rank${n > 1 ? "s" : ""}`
       : `-${n} rank${n > 1 ? "s" : ""}`;
-  }
-
-  if (tierIndex(startTier) >= TIER_ORDER.MASTER) {
-    const lp = currentLp - startLp;
-    if (lp === 0) return "—";
-    return lp > 0 ? `+${lp} LP` : `${lp} LP`;
-  }
-
-  const divDiff = divisionIndex(currentDivision) - divisionIndex(startDivision);
-
-  if (divDiff !== 0) {
-    return divDiff > 0 ? `+${divDiff} div` : `${divDiff} div`;
   }
 
   const lp = currentLp - startLp;
