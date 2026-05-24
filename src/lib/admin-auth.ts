@@ -1,11 +1,24 @@
+function normalizeSecret(value: string | null | undefined): string | undefined {
+  if (value == null) return undefined;
+  let s = value.trim();
+  if (
+    (s.startsWith('"') && s.endsWith('"')) ||
+    (s.startsWith("'") && s.endsWith("'"))
+  ) {
+    s = s.slice(1, -1).trim();
+  }
+  return s || undefined;
+}
+
 export function getAdminSecret(): string | undefined {
-  return process.env.ADMIN_SECRET?.trim() || undefined;
+  return normalizeSecret(process.env.ADMIN_SECRET);
 }
 
 export function verifyAdminSecret(provided: string | null | undefined): boolean {
   const secret = getAdminSecret();
-  if (!secret || !provided) return false;
-  return provided === secret;
+  const candidate = normalizeSecret(provided);
+  if (!secret || !candidate) return false;
+  return candidate === secret;
 }
 
 export function verifyAdminRequest(request: Request): boolean {

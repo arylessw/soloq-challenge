@@ -21,7 +21,20 @@ export default function AdminPage() {
         headers: { "x-admin-secret": adminSecret },
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Accès refusé");
+      if (!res.ok) {
+        if (res.status === 503) {
+          throw new Error(
+            "ADMIN_SECRET non configuré sur Vercel — ajoute la variable puis redeploie."
+          );
+        }
+        if (res.status === 401) {
+          sessionStorage.removeItem(STORAGE_KEY);
+          throw new Error(
+            "Mot de passe incorrect. Vérifie ADMIN_SECRET sur Vercel (sans guillemets) puis réessaie."
+          );
+        }
+        throw new Error(data.error ?? "Accès refusé");
+      }
       setPlayers(data);
       setAuthed(true);
     } catch (e) {

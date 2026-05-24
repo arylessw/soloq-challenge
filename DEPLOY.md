@@ -33,7 +33,7 @@ git push -u origin main
 |-----|--------|
 | `RIOT_API_KEY` | Ta clé depuis [developer.riotgames.com](https://developer.riotgames.com/) |
 | `DATABASE_URL` | Connection string Neon (PostgreSQL) |
-| `ADMIN_SECRET` | Mot de passe secret pour `/admin` (supprimer un joueur). Génère une chaîne longue aléatoire — **ne la partage pas**. |
+| `ADMIN_SECRET` | Mot de passe secret pour `/admin` (supprimer un joueur). Chaîne longue aléatoire — **sans guillemets** dans Vercel (ex. `a3f9b2...`, pas `"a3f9b2..."`). |
 
 Pages légales (utile pour la clé Riot prod) :
 - `/terms` — conditions d'utilisation
@@ -78,7 +78,7 @@ Tu peux utiliser la même base Neon qu’en prod (pour tester) ou un second proj
 | Build échoue : `Environment variable not found: DATABASE_URL` | **DATABASE_URL absente sur Vercel.** Settings → Environment Variables → ajoute la connection string Neon → coche **Production + Preview + Development** → Redeploy. |
 | Build échoue sur Prisma (autre) | Vérifie que `DATABASE_URL` commence par `postgresql://` et contient `?sslmode=require` |
 | 401 Riot en prod | Clé expirée → regénère / demande clé production |
-| Base vide après deploy | Normal — réinscris les joueurs sur `/inscription` |
+| Admin : mot de passe refusé | Vercel → `ADMIN_SECRET` : valeur **sans guillemets**, identique à ce que tu tapes sur `/admin`. Redeploie après changement. Vide le cache : bouton Déconnexion ou nouvel onglet privé. |
 
 ## Limites gratuites
 
