@@ -1,11 +1,15 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bg: #0a0e17;
-  --color-surface: #111827;
-  --color-gold: #c9a227;
-  --color-gold-light: #e8d48b;
-  --color-muted: #94a3b8;
+  --color-bg: #060a12;
+  --color-bg-elevated: #0c1220;
+  --color-surface: #121a2e;
+  --color-surface-hover: #1a2540;
+  --color-gold: #d4af37;
+  --color-gold-light: #f0e6b8;
+  --color-gold-dim: #8b7324;
+  --color-accent: #3b82f6;
+  --color-muted: #8b9cb8;
   --font-display: "Cinzel", Georgia, serif;
   --font-sans: "DM Sans", system-ui, sans-serif;
 }
@@ -14,8 +18,21 @@
   body {
     @apply bg-bg text-white font-sans antialiased min-h-screen;
     background-image:
-      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(201, 162, 39, 0.12), transparent),
-      radial-gradient(ellipse 60% 40% at 100% 100%, rgba(30, 58, 138, 0.15), transparent);
+      linear-gradient(rgba(212, 175, 55, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(212, 175, 55, 0.03) 1px, transparent 1px),
+      radial-gradient(ellipse 90% 60% at 50% -30%, rgba(212, 175, 55, 0.14), transparent 55%),
+      radial-gradient(ellipse 50% 40% at 0% 80%, rgba(59, 130, 246, 0.08), transparent 50%),
+      radial-gradient(ellipse 40% 35% at 100% 20%, rgba(139, 92, 246, 0.06), transparent 45%);
+    background-size:
+      48px 48px,
+      48px 48px,
+      auto,
+      auto,
+      auto;
+  }
+
+  ::selection {
+    @apply bg-gold/30 text-gold-light;
   }
 }
 
@@ -24,8 +41,63 @@
     font-family: var(--font-display);
   }
 
+  .page-shell {
+    @apply relative mx-auto max-w-5xl px-4 py-10 sm:px-6;
+  }
+
+  .page-hero {
+    @apply relative mb-12 text-center;
+  }
+
+  .page-hero::before {
+    content: "";
+    @apply absolute left-1/2 top-0 -translate-x-1/2 w-px h-8;
+    background: linear-gradient(to bottom, transparent, var(--color-gold), transparent);
+  }
+
+  .page-eyebrow {
+    @apply inline-block text-[11px] uppercase tracking-[0.4em] text-gold/80 mb-4
+      px-4 py-1 rounded-full border border-gold/25 bg-gold/5;
+  }
+
+  .page-title {
+    @apply font-display text-4xl sm:text-5xl text-transparent bg-clip-text mb-3;
+    background-image: linear-gradient(
+      135deg,
+      var(--color-gold-light) 0%,
+      var(--color-gold) 45%,
+      var(--color-gold-dim) 100%
+    );
+  }
+
   .card {
-    @apply rounded-xl border border-gold/15 bg-surface/90 p-6 shadow-xl shadow-black/30;
+    @apply rounded-2xl border border-gold/12 p-6;
+    background: linear-gradient(
+      165deg,
+      rgba(18, 26, 46, 0.95) 0%,
+      rgba(12, 18, 32, 0.98) 100%
+    );
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.03) inset,
+      0 20px 50px -20px rgba(0, 0, 0, 0.6);
+  }
+
+  .card-glow {
+    @apply relative overflow-hidden rounded-2xl border border-gold/12 p-6;
+    background: linear-gradient(
+      165deg,
+      rgba(18, 26, 46, 0.95) 0%,
+      rgba(12, 18, 32, 0.98) 100%
+    );
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.03) inset,
+      0 20px 50px -20px rgba(0, 0, 0, 0.6);
+  }
+
+  .card-glow::after {
+    content: "";
+    @apply pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-64 h-32 rounded-full opacity-40;
+    background: radial-gradient(circle, rgba(212, 175, 55, 0.25), transparent 70%);
   }
 
   .label {
@@ -33,12 +105,214 @@
   }
 
   .input {
-    @apply w-full rounded-lg border border-white/10 bg-bg/80 px-3 py-2.5 text-white
-      placeholder:text-muted/60 focus:border-gold/50 focus:outline-none focus:ring-1 focus:ring-gold/30;
+    @apply w-full rounded-xl border border-white/8 bg-bg/80 px-3 py-2.5 text-white
+      placeholder:text-muted/50 transition
+      focus:border-gold/40 focus:outline-none focus:ring-2 focus:ring-gold/20;
   }
 
   .btn-primary {
-    @apply rounded-lg bg-gold px-4 py-2.5 text-sm font-semibold text-bg
-      transition hover:bg-gold-light focus:outline-none focus:ring-2 focus:ring-gold/50;
+    @apply rounded-xl px-5 py-2.5 text-sm font-semibold text-bg transition-all duration-200;
+    background: linear-gradient(135deg, var(--color-gold-light), var(--color-gold));
+    box-shadow: 0 4px 20px -4px rgba(212, 175, 55, 0.5);
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    @apply -translate-y-0.5;
+    box-shadow: 0 8px 28px -4px rgba(212, 175, 55, 0.55);
+  }
+
+  .btn-primary:disabled {
+    @apply opacity-50 cursor-not-allowed;
+  }
+
+  .nav-bar {
+    @apply sticky top-0 z-50 border-b border-gold/10;
+    background: rgba(6, 10, 18, 0.82);
+    backdrop-filter: blur(16px);
+  }
+
+  .nav-link {
+    @apply relative text-sm text-muted transition-colors duration-200 hover:text-gold-light;
+  }
+
+  .nav-link-active {
+    @apply text-gold-light;
+  }
+
+  .nav-link-active::after {
+    content: "";
+    @apply absolute -bottom-1 left-0 right-0 h-px;
+    background: linear-gradient(90deg, transparent, var(--color-gold), transparent);
+  }
+
+  .leaderboard-panel {
+    @apply rounded-2xl border border-gold/10 p-4 sm:p-5 mb-8;
+    background: linear-gradient(
+      180deg,
+      rgba(18, 26, 46, 0.6) 0%,
+      rgba(12, 18, 32, 0.4) 100%
+    );
+  }
+
+  .leaderboard-tab {
+    @apply rounded-xl border border-white/8 px-4 py-2.5 text-sm font-medium
+      text-muted transition-all duration-200
+      hover:border-gold/25 hover:text-white hover:bg-white/5;
+  }
+
+  .leaderboard-tab-active {
+    @apply border-gold/40 text-gold-light;
+    background: linear-gradient(
+      180deg,
+      rgba(212, 175, 55, 0.18) 0%,
+      rgba(212, 175, 55, 0.06) 100%
+    );
+    box-shadow: 0 0 20px -8px rgba(212, 175, 55, 0.4);
+  }
+
+  .sync-pill {
+    @apply inline-flex items-center gap-2 rounded-full border border-white/8
+      bg-bg/50 px-3 py-1 text-xs text-muted;
+  }
+
+  .podium-card {
+    @apply relative rounded-2xl border px-4 pt-5 pb-3 text-center transition-all duration-300;
+    background: linear-gradient(
+      180deg,
+      rgba(18, 26, 46, 0.9) 0%,
+      rgba(12, 18, 32, 0.95) 100%
+    );
+  }
+
+  .podium-card:hover {
+    @apply -translate-y-1 border-gold/30;
+    box-shadow: 0 12px 40px -16px rgba(212, 175, 55, 0.2);
+  }
+
+  .podium-first {
+    @apply border-gold/35;
+    box-shadow: 0 0 40px -12px rgba(212, 175, 55, 0.35);
+  }
+
+  .podium-pillar {
+    @apply mt-4 w-full rounded-t-xl border-x border-t border-gold/10 flex items-end justify-center pb-2;
+    background: linear-gradient(
+      to top,
+      rgba(18, 26, 46, 0.95),
+      rgba(212, 175, 55, 0.08)
+    );
+  }
+
+  .podium-pillar-gold {
+    background: linear-gradient(
+      to top,
+      rgba(18, 26, 46, 0.95),
+      rgba(212, 175, 55, 0.2)
+    );
+  }
+
+  .table-shell {
+    @apply rounded-2xl border border-gold/12 overflow-hidden;
+    background: linear-gradient(
+      165deg,
+      rgba(18, 26, 46, 0.95) 0%,
+      rgba(12, 18, 32, 0.98) 100%
+    );
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.03) inset,
+      0 20px 50px -20px rgba(0, 0, 0, 0.6);
+  }
+
+  .table-shell thead {
+    background: rgba(0, 0, 0, 0.25);
+  }
+
+  .table-shell tbody tr {
+    @apply transition-colors duration-150;
+  }
+
+  .table-shell tbody tr:hover {
+    background: rgba(212, 175, 55, 0.04);
+  }
+
+  .rank-badge {
+    @apply inline-flex h-8 w-8 items-center justify-center rounded-full font-display text-sm;
+  }
+
+  .rank-badge-gold {
+    @apply border border-gold/50 text-gold;
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(212, 175, 55, 0.05));
+    box-shadow: 0 0 16px -4px rgba(212, 175, 55, 0.4);
+  }
+
+  .rank-badge-muted {
+    @apply border border-white/10 text-muted bg-white/5;
+  }
+
+  .board-transition-root {
+    @apply relative overflow-hidden;
+  }
+
+  .board-animate-in-right {
+    animation: board-slide-in-right 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .board-animate-in-left {
+    animation: board-slide-in-left 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .board-stagger-1 {
+    animation: board-fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.08s both;
+  }
+
+  .board-stagger-2 {
+    animation: board-fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.16s both;
+  }
+
+  .board-stagger-3 {
+    animation: board-fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.24s both;
+  }
+
+  @keyframes board-slide-in-right {
+    from {
+      opacity: 0;
+      transform: translateX(48px) scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0) scale(1);
+    }
+  }
+
+  @keyframes board-slide-in-left {
+    from {
+      opacity: 0;
+      transform: translateX(-48px) scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0) scale(1);
+    }
+  }
+
+  @keyframes board-fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .board-animate-in-right,
+    .board-animate-in-left,
+    .board-stagger-1,
+    .board-stagger-2,
+    .board-stagger-3 {
+      animation: none;
+    }
   }
 }

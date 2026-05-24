@@ -1,17 +1,21 @@
 import { Leaderboard } from "@/components/Leaderboard";
+import { PageHero } from "@/components/PageHero";
+import { PlayerOfWeekBanner } from "@/components/PlayerOfWeekBanner";
+import { getPlayerOfWeek, hasEnoughWeekData } from "@/lib/player-of-week";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const [playerOfWeek, hasData] = await Promise.all([
+    getPlayerOfWeek(),
+    hasEnoughWeekData(),
+  ]);
+
   return (
     <div>
-      <header className="mb-10 text-center">
-        <h1 className="font-display text-4xl text-gold mb-2">
-          Classement SoloQ
-        </h1>
-        <p className="text-muted max-w-xl mx-auto">
-          Classement par progression LP depuis le rang de départ — le plus de
-          LP gagnés est premier. EUW uniquement.
-        </p>
-      </header>
+      <PageHero
+        title="SoloQ Challenge"
+        description="Plusieurs classements pour suivre le défi entre amis — progression, rang, winrate et KDA."
+      />
+      <PlayerOfWeekBanner player={playerOfWeek} hasData={hasData} />
       <Leaderboard />
     </div>
   );

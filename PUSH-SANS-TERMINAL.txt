@@ -10,12 +10,12 @@
 
 ÉTAPE 2 — Double-clic sur ce fichier dans le dossier du projet :
   
-     git-push.cmd
+     push-deploy.cmd
 
-  Une fenêtre noire s'ouvre → colle l'URL que GitHub affiche, ex :
-  https://github.com/TON_PSEUDO/soloq-challenge.git
+  → commit + push vers GitHub (remote déjà configuré : arylessw/soloq-challenge)
+  → Vercel redéploie tout seul si le projet est lié au repo
 
-  Entrée → connexion GitHub si demandé → terminé.
+  (Ancien script sans commit : git-push.cmd)
 
 ───────────────────────────────────────────────────────
 

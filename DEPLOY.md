@@ -33,10 +33,21 @@ git push -u origin main
 |-----|--------|
 | `RIOT_API_KEY` | Ta clé depuis [developer.riotgames.com](https://developer.riotgames.com/) |
 | `DATABASE_URL` | Connection string Neon (PostgreSQL) |
+| `ADMIN_SECRET` | Mot de passe secret pour `/admin` (supprimer un joueur). Génère une chaîne longue aléatoire — **ne la partage pas**. |
+
+Pages légales (utile pour la clé Riot prod) :
+- `/terms` — conditions d'utilisation
+- `/privacy` — politique de confidentialité
 
 4. **Deploy** — le build lance `prisma migrate deploy` puis Next.js.
 
 5. Ton site sera sur `https://ton-projet.vercel.app`.
+
+## Admin (toi seul)
+
+- URL : `https://ton-projet.vercel.app/admin` (non linkée dans le menu).
+- Entre le même `ADMIN_SECRET` que sur Vercel.
+- Le secret est stocké en session dans ton navigateur (sessionStorage) le temps de la session.
 
 ## 4. Clé API Riot en production
 

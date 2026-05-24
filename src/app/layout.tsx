@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Cinzel, DM_Sans } from "next/font/google";
 import { Nav } from "@/components/Nav";
+import { RiotApiBanner } from "@/components/RiotApiBanner";
+import { SiteFooter } from "@/components/SiteFooter";
+import { siteMetadata } from "@/lib/site-metadata";
 import "./globals.css";
 
 const cinzel = Cinzel({
@@ -15,10 +18,7 @@ const dmSans = DM_Sans({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  title: "SoloQ Challenge — EUW",
-  description: "Classement du défi solo queue entre amis",
-};
+export const metadata: Metadata = siteMetadata;
 
 export default function RootLayout({
   children,
@@ -28,8 +28,10 @@ export default function RootLayout({
   return (
     <html lang="fr" className={`${cinzel.variable} ${dmSans.variable}`}>
       <body>
+        <RiotApiBanner />
         <Nav />
-        <main className="mx-auto max-w-5xl px-4 py-10">{children}</main>
+        <main className="page-shell">{children}</main>
+        <SiteFooter />
       </body>
     </html>
   );

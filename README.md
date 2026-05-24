@@ -28,9 +28,9 @@ Guide détaillé : **[DEPLOY.md](./DEPLOY.md)**
 
 | Route | Description |
 |-------|-------------|
-| `/` | Classement + auto-refresh toutes les 3 min |
+| `/` | Classements (LP, rang, WR, KDA) + auto-refresh 3 min |
 | `/inscription` | Inscription joueur |
-| `/regles` | Règles du défi |
+| `/games` | Historique de parties par joueur |
 
 ## Scripts
 

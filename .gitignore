@@ -26,6 +26,7 @@ yarn-error.log*
 # env files
 .env
 .env*.local
+VERCEL-CRON-SECRET.txt
 
 # vercel
 .vercel

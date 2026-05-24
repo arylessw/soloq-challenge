@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { RankWithEmblem } from "@/components/RankEmblem";
 import { DIVISIONS, TIERS, TIER_LABELS, divisionRequired } from "@/lib/ranks";
 import type { Tier } from "@/lib/ranks";
 
@@ -12,16 +13,14 @@ export function RegisterForm() {
   const [startTier, setStartTier] = useState<Tier>("SILVER");
   const [startDivision, setStartDivision] = useState("IV");
   const [startLp, setStartLp] = useState(0);
+  const [rankLoaded, setRankLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [fetchingRank, setFetchingRank] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const needsDivision = divisionRequired(startTier);
 
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-
+  function parseRiotId() {
     let name = gameName.trim();
     let tag = tagLine.trim();
     if (name.includes("#")) {
@@ -29,6 +28,43 @@ export function RegisterForm() {
       name = n.trim();
       tag = (t || tag).trim();
     }
+    return { name, tag };
+  }
+
+  async function fetchRankFromRiot() {
+    const { name, tag } = parseRiotId();
+    if (!name || !tag) {
+      setError("Entre ton pseudo et ton tag avant de récupérer le rang");
+      return;
+    }
+
+    setFetchingRank(true);
+    setError(null);
+
+    try {
+      const params = new URLSearchParams({ gameName: name, tagLine: tag });
+      const res = await fetch(`/api/players/lookup?${params}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Impossible de récupérer le rang");
+
+      setStartTier(data.tier as Tier);
+      setStartDivision(data.division);
+      setStartLp(data.lp);
+      setRankLoaded(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erreur");
+      setRankLoaded(false);
+    } finally {
+      setFetchingRank(false);
+    }
+  }
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    const { name, tag } = parseRiotId();
 
     try {
       const res = await fetch("/api/players", {
@@ -54,7 +90,7 @@ export function RegisterForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="card max-w-lg mx-auto space-y-5">
+    <form onSubmit={onSubmit} className="card-glow max-w-lg mx-auto space-y-5 relative z-[1]">
       <div>
         <label className="label" htmlFor="gameName">
           Pseudo (Riot ID)
@@ -64,7 +100,10 @@ export function RegisterForm() {
           className="input"
           placeholder="MonPseudo"
           value={gameName}
-          onChange={(e) => setGameName(e.target.value)}
+          onChange={(e) => {
+            setGameName(e.target.value);
+            setRankLoaded(false);
+          }}
           required
         />
       </div>
@@ -78,7 +117,10 @@ export function RegisterForm() {
           className="input"
           placeholder="EUW"
           value={tagLine}
-          onChange={(e) => setTagLine(e.target.value)}
+          onChange={(e) => {
+            setTagLine(e.target.value);
+            setRankLoaded(false);
+          }}
           required
         />
         <p className="mt-1 text-xs text-muted">
@@ -86,10 +128,40 @@ export function RegisterForm() {
         </p>
       </div>
 
+      <div>
+        <button
+          type="button"
+          onClick={fetchRankFromRiot}
+          disabled={fetchingRank}
+          className="btn-primary w-full disabled:opacity-50"
+        >
+          {fetchingRank
+            ? "Récupération du rang SoloQ…"
+            : "Récupérer mon rang actuel depuis Riot"}
+        </button>
+        <p className="mt-2 text-xs text-muted text-center">
+          Ton rang de départ sera celui affiché au moment de l&apos;inscription.
+        </p>
+      </div>
+
       <fieldset className="border-t border-gold/20 pt-5">
         <legend className="text-gold font-medium mb-3">
-          Rang de départ (au moment de l&apos;inscription)
+          Rang de départ
+          {rankLoaded && (
+            <span className="ml-2 text-xs font-sans font-normal text-emerald-400">
+              ✓ depuis Riot
+            </span>
+          )}
         </legend>
+
+        {rankLoaded && (
+          <div className="mb-4 rounded-lg border border-gold/20 bg-bg/50 px-4 py-3">
+            <RankWithEmblem
+              tier={startTier}
+              label={`${TIER_LABELS[startTier]}${needsDivision ? ` ${startDivision}` : ""} — ${startLp} LP`}
+            />
+          </div>
+        )}
 
         <div className="grid grid-cols-2 gap-4">
           <div>
@@ -100,7 +172,10 @@ export function RegisterForm() {
               id="startTier"
               className="input"
               value={startTier}
-              onChange={(e) => setStartTier(e.target.value as Tier)}
+              onChange={(e) => {
+                setStartTier(e.target.value as Tier);
+                setRankLoaded(false);
+              }}
             >
               {TIERS.map((t) => (
                 <option key={t} value={t}>
@@ -119,7 +194,10 @@ export function RegisterForm() {
                 id="startDivision"
                 className="input"
                 value={startDivision}
-                onChange={(e) => setStartDivision(e.target.value)}
+                onChange={(e) => {
+                  setStartDivision(e.target.value);
+                  setRankLoaded(false);
+                }}
               >
                 {DIVISIONS.map((d) => (
                   <option key={d} value={d}>
@@ -142,7 +220,10 @@ export function RegisterForm() {
             max={100}
             className="input"
             value={startLp}
-            onChange={(e) => setStartLp(Number(e.target.value))}
+            onChange={(e) => {
+              setStartLp(Number(e.target.value));
+              setRankLoaded(false);
+            }}
           />
         </div>
       </fieldset>
@@ -154,7 +235,7 @@ export function RegisterForm() {
       )}
 
       <button type="submit" disabled={loading} className="btn-primary w-full">
-        {loading ? "Vérification Riot API…" : "S'inscrire"}
+        {loading ? "Inscription…" : "S'inscrire"}
       </button>
     </form>
   );

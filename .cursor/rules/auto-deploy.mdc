@@ -1,0 +1,17 @@
+---
+description: Déployer sur Vercel via git push après chaque tâche terminée
+alwaysApply: true
+---
+
+# Auto-deploy Vercel
+
+Quand une tâche de code est **terminée** et que les changements sont prêts pour la prod :
+
+1. Vérifier qu'aucun secret n'est commité (`.env`, `VERCEL-CRON-SECRET.txt`, clés API).
+2. `git add` les fichiers pertinents (pas de commit vide).
+3. Créer un commit avec un message court en français décrivant le **pourquoi**.
+4. `git push origin main` pour déclencher le redéploiement Vercel (repo `arylessw/soloq-challenge`).
+
+Ne pas demander confirmation pour push si l'utilisateur a demandé un déploiement automatique ou si la conversation implique une mise en prod.
+
+En cas d'échec du push (auth, conflit), signaler le blocage et proposer la commande à lancer manuellement (`push-deploy.cmd`).

@@ -1,22 +1,12 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
-import { syncPlayerById } from "@/lib/sync-player";
+import { syncAllPlayers } from "@/lib/sync-all";
 
 export async function POST() {
-  const players = await prisma.player.findMany();
-  const results: { id: string; ok: boolean; error?: string }[] = [];
-
-  for (const player of players) {
-    const result = await syncPlayerById(player.id);
-    results.push({ id: player.id, ...result });
-    if (players.length > 1) {
-      await new Promise((r) => setTimeout(r, 1200));
-    }
+  try {
+    const result = await syncAllPlayers();
+    return NextResponse.json(result);
+  } catch (e) {
+    console.error("[POST /api/sync]", e);
+    return NextResponse.json({ error: "Sync échouée" }, { status: 500 });
   }
-
-  return NextResponse.json({
-    synced: results.filter((r) => r.ok).length,
-    results,
-    at: new Date().toISOString(),
-  });
 }

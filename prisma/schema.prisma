@@ -23,8 +23,32 @@ model Player {
   lpLost          Int       @default(0)
   wins            Int?
   losses          Int?
+  winsAtStart     Int       @default(0)
+  lossesAtStart   Int       @default(0)
+  avgKda          Float?
+  kdaGames        Int?
+  lastKdaSyncedAt DateTime?
+  lastGameAt      DateTime?
+  streakType      String?
+  streakCount     Int       @default(0)
+  championStats   Json?
   lastSyncedAt    DateTime?
   createdAt       DateTime  @default(now())
 
+  lpSnapshots LpSnapshot[]
+
   @@unique([gameName, tagLine])
+}
+
+model LpSnapshot {
+  id         String   @id @default(cuid())
+  playerId   String
+  player     Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  lpNet      Int
+  tier       String?
+  division   String?
+  lp         Int?
+  recordedAt DateTime @default(now())
+
+  @@index([playerId, recordedAt])
 }

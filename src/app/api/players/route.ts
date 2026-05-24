@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { seedInitialLpSnapshot } from "@/lib/lp-snapshots";
 import { listPlayers } from "@/lib/players";
 import { fetchAccount, fetchSoloQueue } from "@/lib/riot";
 import {
@@ -113,6 +114,8 @@ export async function POST(request: Request) {
         lpLost: initialLp.lpLost,
         wins: stats.wins,
         losses: stats.losses,
+        winsAtStart: stats.wins,
+        lossesAtStart: stats.losses,
         lastSyncedAt: new Date(),
       },
       update: {
@@ -126,6 +129,8 @@ export async function POST(request: Request) {
         lastSyncedAt: new Date(),
       },
     });
+
+    await seedInitialLpSnapshot(player.id, player.createdAt);
 
     return NextResponse.json({ id: player.id, message: "Joueur inscrit" });
   } catch (e) {

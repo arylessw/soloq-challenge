@@ -1,8 +1,15 @@
 "use client";
 
-import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { BoardTransition } from "@/components/BoardTransition";
+import { LeaderboardPodium } from "@/components/LeaderboardPodium";
+import { LeaderboardTable } from "@/components/LeaderboardTable";
 import type { PlayerView } from "@/lib/players";
+import {
+  LEADERBOARDS,
+  sortPlayersForBoard,
+  type LeaderboardId,
+} from "@/lib/leaderboards";
 
 const AUTO_REFRESH_MS = 3 * 60 * 1000;
 
@@ -25,10 +32,31 @@ export function Leaderboard() {
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [activeBoard, setActiveBoard] = useState<LeaderboardId>("lp");
+  const [slideDir, setSlideDir] = useState<1 | -1>(1);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
   const [countdown, setCountdown] = useState(AUTO_REFRESH_MS / 1000);
   const syncingRef = useRef(false);
   const lastRefreshRef = useRef<Date | null>(null);
+
+  const boardMeta = LEADERBOARDS.find((b) => b.id === activeBoard)!;
+
+  const ranked = useMemo(
+    () => sortPlayersForBoard(players, activeBoard),
+    [players, activeBoard]
+  );
+
+  const switchBoard = useCallback(
+    (next: LeaderboardId) => {
+      if (next === activeBoard) return;
+      const order = LEADERBOARDS.map((b) => b.id);
+      const prevIdx = order.indexOf(activeBoard);
+      const nextIdx = order.indexOf(next);
+      setSlideDir(nextIdx > prevIdx ? 1 : -1);
+      setActiveBoard(next);
+    },
+    [activeBoard]
+  );
 
   const load = useCallback(async () => {
     setError(null);
@@ -109,125 +137,105 @@ export function Leaderboard() {
   }, [lastRefresh]);
 
   if (loading) {
-    return <p className="text-center text-muted py-16">Chargement…</p>;
+    return (
+      <div className="flex flex-col items-center justify-center py-24 gap-4">
+        <div className="h-10 w-10 rounded-full border-2 border-gold/30 border-t-gold animate-spin" />
+        <p className="text-sm text-muted">Chargement du classement…</p>
+      </div>
+    );
   }
 
   return (
     <div>
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <div className="text-sm text-muted space-y-1">
-          <p>
-            {players.length} joueur{players.length !== 1 ? "s" : ""} — tri par
-            progression LP (plus de LP gagnés = plus haut)
-          </p>
-          {players.length > 0 && (
-            <p className="flex flex-wrap items-center gap-2 text-xs">
-              <span
-                className={`inline-block h-2 w-2 rounded-full ${
-                  syncing ? "bg-gold animate-pulse" : "bg-emerald-500/80"
-                }`}
-              />
-              {syncing ? (
-                "Actualisation en cours…"
-              ) : lastRefresh ? (
-                <>
-                  Dernière sync {formatRelativeTime(lastRefresh)}
-                  <span className="text-muted/60">·</span>
-                  Prochaine dans {formatCountdown(countdown)}
-                </>
-              ) : (
-                "Auto-actualisation toutes les 3 min"
-              )}
-            </p>
-          )}
+      <div className="leaderboard-panel flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap gap-2">
+          {LEADERBOARDS.map((b) => (
+            <button
+              key={b.id}
+              type="button"
+              onClick={() => switchBoard(b.id)}
+              className={`leaderboard-tab ${activeBoard === b.id ? "leaderboard-tab-active" : ""}`}
+            >
+              {b.shortLabel}
+            </button>
+          ))}
         </div>
         <button
           type="button"
           onClick={() => syncAll(false)}
           disabled={syncing || players.length === 0}
-          className="btn-primary disabled:opacity-50"
+          className="btn-primary shrink-0"
         >
-          {syncing ? "Sync en cours…" : "Actualiser maintenant"}
+          {syncing ? "Sync…" : "Actualiser"}
         </button>
       </div>
 
-      {error && (
-        <p className="mb-4 rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-2 text-sm text-red-300">
-          {error}
-        </p>
-      )}
+      <BoardTransition boardId={activeBoard} direction={slideDir}>
+        <div className="mb-10 text-center board-stagger-1">
+          <h2 className="font-display text-2xl sm:text-3xl text-gold-light mb-2">
+            {boardMeta.label}
+          </h2>
+          <p className="text-sm text-muted max-w-md mx-auto">
+            {boardMeta.description}
+          </p>
+          {players.length > 0 && (
+            <div className="sync-pill mt-4 mx-auto">
+              <span
+                className={`h-1.5 w-1.5 rounded-full ${
+                  syncing ? "bg-gold animate-pulse" : "bg-emerald-400"
+                }`}
+              />
+              {syncing ? (
+                "Actualisation…"
+              ) : lastRefresh ? (
+                <>
+                  Sync {formatRelativeTime(lastRefresh)}
+                  <span className="text-muted/40">·</span>
+                  prochaine {formatCountdown(countdown)}
+                </>
+              ) : (
+                "Auto toutes les 3 min"
+              )}
+            </div>
+          )}
+        </div>
 
-      {players.length === 0 ? (
-        <div className="card text-center py-12">
-          <p className="text-muted mb-4">Aucun joueur inscrit.</p>
-          <a href="/inscription" className="btn-primary inline-block">
-            S&apos;inscrire →
-          </a>
-        </div>
-      ) : (
-        <div className="overflow-x-auto card">
-          <table className="w-full text-left text-sm">
-            <thead>
-              <tr className="border-b border-gold/20 text-muted uppercase text-xs tracking-wider">
-                <th className="py-3 pr-4">#</th>
-                <th className="py-3 pr-4">Joueur</th>
-                <th className="py-3 pr-4">Départ</th>
-                <th className="py-3 pr-4">Actuel</th>
-                <th className="py-3 pr-4">Progression</th>
-                <th className="py-3 pr-4">W/L</th>
-                <th className="py-3">WR</th>
-              </tr>
-            </thead>
-            <tbody>
-              {players.map((p, i) => (
-                <tr
-                  key={p.id}
-                  className="border-b border-white/5 hover:bg-white/5 transition"
-                >
-                  <td className="py-4 pr-4 font-display text-gold text-lg">
-                    {i + 1}
-                  </td>
-                  <td className="py-4 pr-4 font-medium">
-                    <Link
-                      href={`/games/${p.id}`}
-                      className="hover:text-gold-light transition"
-                    >
-                      {p.riotId}
-                    </Link>
-                  </td>
-                  <td className="py-4 pr-4 text-muted">{p.startRank}</td>
-                  <td className="py-4 pr-4">
-                    {p.currentRank ?? <span className="text-muted">—</span>}
-                  </td>
-                  <td className="py-4 pr-4">
-                    {p.lpNet != null && p.lpNet !== 0 ? (
-                      <span
-                        className={
-                          p.lpNet > 0
-                            ? "text-emerald-400 font-semibold"
-                            : "text-red-400 font-semibold"
-                        }
-                      >
-                        {p.progressLabel}
-                      </span>
-                    ) : (
-                      <span className="text-muted">—</span>
-                    )}
-                  </td>
-                  <td className="py-4 pr-4 text-muted">
-                    {p.wins != null && p.losses != null
-                      ? `${p.wins}V / ${p.losses}D`
-                      : "—"}
-                  </td>
-                  <td className="py-4">
-                    {p.winrate != null ? `${p.winrate}%` : "—"}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+        {error && (
+          <p className="mb-4 rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-2 text-sm text-red-300">
+            {error}
+          </p>
+        )}
+
+        {players.length === 0 ? (
+          <div className="card-glow text-center py-12 relative z-[1]">
+            <p className="text-muted mb-4">Aucun joueur inscrit.</p>
+            <a href="/inscription" className="btn-primary inline-block">
+              S&apos;inscrire →
+            </a>
+          </div>
+        ) : (
+          <>
+            {ranked.length >= 2 && (
+              <div className="board-stagger-2">
+                <LeaderboardPodium players={ranked} boardId={activeBoard} />
+              </div>
+            )}
+            <div className="board-stagger-3">
+              <LeaderboardTable
+                players={ranked.length >= 3 ? ranked.slice(3) : ranked}
+                board={boardMeta}
+                startRank={ranked.length >= 3 ? 4 : 1}
+              />
+            </div>
+            {activeBoard === "kda" && ranked.every((p) => p.avgKda == null) && (
+              <p className="mt-4 text-center text-xs text-muted">
+                KDA calculé après la prochaine sync (max 10 parties depuis
+                l&apos;inscription).
+              </p>
+            )}
+          </>
+        )}
+      </BoardTransition>
     </div>
   );
 }
