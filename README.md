@@ -28,9 +28,14 @@ Guide détaillé : **[DEPLOY.md](./DEPLOY.md)**
 
 | Route | Description |
 |-------|-------------|
-| `/` | Classements (LP, rang, WR, KDA) + auto-refresh 3 min |
-| `/inscription` | Inscription joueur |
+| `/` | Classements (LP, rang, WR, KDA, main champ, rôle) + auto-refresh 3 min |
+| `/inscription` | Inscription joueur au défi (Riot ID) |
+| `/compte/inscription` | Créer un compte site (e-mail, mot de passe) |
+| `/compte/connexion` | Se connecter |
+| `/compte` | Profil, photo, comptes LoL reliés |
 | `/games` | Historique de parties par joueur |
+
+Installable en **PWA** (Ajouter à l’écran d’accueil sur mobile). Présence **en partie** / **absent depuis X** mise à jour à chaque sync.
 
 ## Scripts
 

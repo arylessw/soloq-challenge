@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
-import { seedInitialLpSnapshot } from "@/lib/lp-snapshots";
+import {
+  createOrUpdatePlayer,
+  PlayerLinkError,
+} from "@/lib/create-player";
 import { listPlayers } from "@/lib/players";
-import { fetchAccount, fetchSoloQueue } from "@/lib/riot";
+import { getSessionUserId } from "@/lib/session";
 import {
   divisionRequired,
   isValidDivision,
   isValidTier,
-  computeLpProgress,
 } from "@/lib/ranks";
 
 export async function GET() {
@@ -50,93 +51,32 @@ export async function POST(request: Request) {
     }
 
     const division = divisionRequired(startTier) ? startDivision : "I";
+    const linkUserId = await getSessionUserId();
 
-    let stats: {
-      tier: string;
-      division: string;
-      lp: number;
-      wins: number;
-      losses: number;
-      puuid: string;
-      summonerId: string;
-    };
-
-    try {
-      stats = await fetchSoloQueue(gameName, tagLine);
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : "Erreur Riot API";
-
-      if (msg === "UNRANKED") {
-        try {
-          const account = await fetchAccount(gameName, tagLine);
-          stats = {
-            tier: startTier,
-            division,
-            lp: startLp,
-            wins: 0,
-            losses: 0,
-            puuid: account.puuid,
-            summonerId: account.puuid,
-          };
-        } catch (inner) {
-          const innerMsg =
-            inner instanceof Error ? inner.message : "Erreur Riot API";
-          console.error("[POST /api/players]", innerMsg);
-          return NextResponse.json({ error: innerMsg }, { status: 400 });
-        }
-      } else {
-        console.error("[POST /api/players]", msg);
-        return NextResponse.json({ error: msg }, { status: 400 });
-      }
-    }
-
-    const initialLp = computeLpProgress(
-      { tier: startTier, division, lp: startLp },
-      { tier: stats.tier, division: stats.division, lp: stats.lp }
-    );
-
-    const player = await prisma.player.upsert({
-      where: {
-        gameName_tagLine: { gameName, tagLine },
-      },
-      create: {
+    const result = await createOrUpdatePlayer(
+      {
         gameName,
         tagLine,
-        puuid: stats.puuid,
-        summonerId: stats.summonerId,
         startTier,
         startDivision: division,
         startLp,
-        currentTier: stats.tier,
-        currentDivision: stats.division,
-        currentLp: stats.lp,
-        lpGained: initialLp.lpGained,
-        lpLost: initialLp.lpLost,
-        wins: stats.wins,
-        losses: stats.losses,
-        winsAtStart: stats.wins,
-        lossesAtStart: stats.losses,
-        lastSyncedAt: new Date(),
       },
-      update: {
-        puuid: stats.puuid,
-        summonerId: stats.summonerId,
-        currentTier: stats.tier,
-        currentDivision: stats.division,
-        currentLp: stats.lp,
-        wins: stats.wins,
-        losses: stats.losses,
-        lastSyncedAt: new Date(),
-      },
+      linkUserId ?? undefined
+    );
+
+    return NextResponse.json({
+      id: result.id,
+      message: linkUserId
+        ? "Joueur inscrit et relié à ton compte"
+        : "Joueur inscrit",
     });
-
-    await seedInitialLpSnapshot(player.id, player.createdAt);
-
-    return NextResponse.json({ id: player.id, message: "Joueur inscrit" });
   } catch (e) {
+    if (e instanceof PlayerLinkError) {
+      return NextResponse.json({ error: e.message }, { status: 409 });
+    }
     console.error(e);
     return NextResponse.json(
-      { error: "Erreur lors de l'inscription" },
+      { error: e instanceof Error ? e.message : "Erreur lors de l'inscription" },
       { status: 500 }
     );
   }

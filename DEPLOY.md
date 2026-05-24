@@ -26,7 +26,17 @@ git push -u origin main
 ## 3. Vercel
 
 1. Compte sur [vercel.com](https://vercel.com) → **Add New** → **Project**.
-2. Importe ton repo GitHub.
+2. Importe le repo **`arylessw/soloq-challenge`** (ou ton fork — mais un seul projet Vercel doit pointer vers ce repo).
+
+### Mauvais projet Vercel après un push ?
+
+Si le site déployé n’est pas celui que tu consultes :
+
+1. [vercel.com](https://vercel.com) → liste des projets → ouvre **celui que tu utilises vraiment**.
+2. **Settings** → **Git** → vérifie que le repo connecté est `arylessw/soloq-challenge` (branche `main`).
+3. Si un **autre** projet Vercel est aussi lié au même repo, déconnecte-le ou supprime-le.
+4. Utilise **`push-deploy.cmd`** (pas l’ancien `git-push.cmd` qui pouvait changer le remote vers un mauvais repo).
+5. Ajoute **`NEXT_PUBLIC_SITE_URL`** = `https://soloq-challenge.vercel.app` dans Vercel **et** dans `.env` local — pour les liens de partage et Open Graph.
 3. **Environment Variables** (avant Deploy) :
 
 | Nom | Valeur |
@@ -34,6 +44,8 @@ git push -u origin main
 | `RIOT_API_KEY` | Ta clé depuis [developer.riotgames.com](https://developer.riotgames.com/) |
 | `DATABASE_URL` | Connection string Neon (PostgreSQL) |
 | `ADMIN_SECRET` | Mot de passe secret pour `/admin` (supprimer un joueur). Chaîne longue aléatoire — **sans guillemets** dans Vercel (ex. `a3f9b2...`, pas `"a3f9b2..."`). |
+| `SESSION_SECRET` | Secret pour les cookies de connexion (`/compte`). Génère avec `openssl rand -hex 32`. Obligatoire en production. |
+| `NEXT_PUBLIC_SITE_URL` | `https://soloq-challenge.vercel.app` (liens de partage, Open Graph) |
 
 Pages légales (utile pour la clé Riot prod) :
 - `/terms` — conditions d'utilisation
@@ -41,11 +53,11 @@ Pages légales (utile pour la clé Riot prod) :
 
 4. **Deploy** — le build lance `prisma migrate deploy` puis Next.js.
 
-5. Ton site sera sur `https://ton-projet.vercel.app`.
+5. Ton site sera sur [https://soloq-challenge.vercel.app](https://soloq-challenge.vercel.app).
 
 ## Admin (toi seul)
 
-- URL : `https://ton-projet.vercel.app/admin` (non linkée dans le menu).
+- URL : [https://soloq-challenge.vercel.app/admin](https://soloq-challenge.vercel.app/admin) (non linkée dans le menu).
 - Entre le même `ADMIN_SECRET` que sur Vercel.
 - Le secret est stocké en session dans ton navigateur (sessionStorage) le temps de la session.
 

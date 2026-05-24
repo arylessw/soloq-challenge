@@ -148,7 +148,7 @@ export function Leaderboard() {
   return (
     <div>
       <div className="leaderboard-panel flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 overflow-x-auto pb-1 -mx-1 px-1">
           {LEADERBOARDS.map((b) => (
             <button
               key={b.id}
@@ -229,10 +229,22 @@ export function Leaderboard() {
             </div>
             {activeBoard === "kda" && ranked.every((p) => p.avgKda == null) && (
               <p className="mt-4 text-center text-xs text-muted">
-                KDA calculé après la prochaine sync (max 10 parties depuis
-                l&apos;inscription).
+                KDA calculé après la prochaine sync (historique des parties
+                ranked).
               </p>
             )}
+            {(activeBoard === "champion" || activeBoard === "role") &&
+              ranked.every(
+                (p) =>
+                  (activeBoard === "champion"
+                    ? !p.mainChampion || p.mainChampion.games < 5
+                    : !p.mainRole || p.mainRole.games < 5)
+              ) && (
+                <p className="mt-4 text-center text-xs text-muted">
+                  Classement disponible après au moins 5 parties sur le main (
+                  sync des matchs requise).
+                </p>
+              )}
           </>
         )}
       </BoardTransition>

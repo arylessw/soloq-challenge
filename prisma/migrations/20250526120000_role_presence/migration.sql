@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Player" ADD COLUMN "roleStats" JSONB;
+ALTER TABLE "Player" ADD COLUMN "inGame" BOOLEAN NOT NULL DEFAULT false;

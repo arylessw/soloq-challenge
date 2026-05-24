@@ -1,6 +1,11 @@
+import Image from "next/image";
 import Link from "next/link";
 import { PlayerMeta } from "@/components/PlayerMeta";
 import { RankEmblem } from "@/components/RankEmblem";
+import { UserAvatar } from "@/components/UserAvatar";
+import { championIconUrl } from "@/lib/champion-stats";
+import { playerListName, playerListSubtitle } from "@/lib/player-display";
+import { roleIconUrl } from "@/lib/role-stats";
 import type { PlayerView } from "@/lib/players";
 import {
   formatMetric,
@@ -49,17 +54,44 @@ export function LeaderboardPodium({ players, boardId }: Props) {
           >
             {place}
           </div>
-          {p.currentTier && (
-            <RankEmblem
-              tier={p.currentTier}
-              size={isFirst ? 44 : 36}
-              className="mx-auto mb-2 drop-shadow-lg"
+          {p.owner ? (
+            <UserAvatar
+              displayName={p.owner.displayName}
+              avatarUrl={p.owner.avatarUrl}
+              size={isFirst ? 72 : 56}
+              className="mx-auto mb-2"
             />
+          ) : boardId === "champion" && p.mainChampion ? (
+            <Image
+              src={championIconUrl(p.mainChampion.championName)}
+              alt={p.mainChampion.championName}
+              width={isFirst ? 72 : 56}
+              height={isFirst ? 72 : 56}
+              className="mx-auto mb-2 rounded-xl border-2 border-gold/40"
+              unoptimized
+            />
+          ) : boardId === "role" && p.mainRole ? (
+            <Image
+              src={roleIconUrl(p.mainRole.role)}
+              alt={p.mainRole.label}
+              width={isFirst ? 56 : 44}
+              height={isFirst ? 56 : 44}
+              className="mx-auto mb-2"
+              unoptimized
+            />
+          ) : (
+            p.currentTier && (
+              <RankEmblem
+                tier={p.currentTier}
+                size={isFirst ? 44 : 36}
+                className="mx-auto mb-2 drop-shadow-lg"
+              />
+            )
           )}
           <p className="font-medium truncate group-hover:text-gold-light transition">
-            {p.gameName}
+            {playerListName(p)}
           </p>
-          <p className="text-[11px] text-muted truncate">#{p.tagLine}</p>
+          <p className="text-[11px] text-muted truncate">{playerListSubtitle(p)}</p>
           <PlayerMeta player={p} />
           <p
             className={`font-display text-2xl mt-2 ${

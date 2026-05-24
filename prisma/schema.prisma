@@ -7,6 +7,19 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  displayName  String
+  avatarMime   String?
+  avatarData   Bytes?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  players Player[]
+}
+
 model Player {
   id              String    @id @default(cuid())
   gameName        String
@@ -32,12 +45,17 @@ model Player {
   streakType      String?
   streakCount     Int       @default(0)
   championStats   Json?
+  roleStats       Json?
+  inGame          Boolean   @default(false)
   lastSyncedAt    DateTime?
   createdAt       DateTime  @default(now())
+  userId          String?
+  user            User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   lpSnapshots LpSnapshot[]
 
   @@unique([gameName, tagLine])
+  @@index([userId])
 }
 
 model LpSnapshot {

@@ -53,6 +53,10 @@ export function computeChampionStats(
     .sort((a, b) => b.games - a.games || b.winrate - a.winrate);
 }
 
+export function pickMainChampion(stats: ChampionStat[]): ChampionStat | null {
+  return stats[0] ?? null;
+}
+
 export function parseChampionStats(raw: unknown): ChampionStat[] {
   if (!Array.isArray(raw)) return [];
   return raw.filter(

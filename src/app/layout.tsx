@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Cinzel, DM_Sans } from "next/font/google";
 import { Nav } from "@/components/Nav";
+import { PwaRegister } from "@/components/PwaRegister";
 import { RiotApiBanner } from "@/components/RiotApiBanner";
 import { SiteFooter } from "@/components/SiteFooter";
 import { siteMetadata } from "@/lib/site-metadata";
@@ -32,6 +33,7 @@ export default function RootLayout({
         <Nav />
         <main className="page-shell">{children}</main>
         <SiteFooter />
+        <PwaRegister />
       </body>
     </html>
   );

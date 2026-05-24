@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChampionStatsPanel } from "@/components/ChampionStatsPanel";
+import { RoleStatsPanel } from "@/components/RoleStatsPanel";
 import { LpChart } from "@/components/LpChart";
 import { PlayerMatchHistory } from "@/components/PlayerMatchHistory";
 import { PlayerMeta } from "@/components/PlayerMeta";
@@ -71,7 +72,7 @@ export default async function PlayerGamesPage({ params }: Props) {
             <p className="text-muted text-sm mb-2">#{player.tagLine}</p>
             <PlayerMeta player={player} />
             <div className="mt-4">
-              <ShareProfileButton playerId={id} gameName={player.gameName} />
+              <ShareProfileButton player={player} />
             </div>
             <div className="flex flex-wrap gap-6 text-sm mt-6">
               <div>
@@ -118,9 +119,13 @@ export default async function PlayerGamesPage({ params }: Props) {
         </div>
       </header>
 
-      <div className="grid gap-6 lg:grid-cols-2 mb-10">
+      <div className="grid gap-6 lg:grid-cols-2 mb-6">
         <LpChart points={lpHistory} />
         <ChampionStatsPanel stats={player.championStats} />
+      </div>
+
+      <div className="mb-10">
+        <RoleStatsPanel stats={player.roleStats} />
       </div>
 
       <h2 className="font-display text-xl text-gold-light mb-4">

@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { RankWithEmblem } from "@/components/RankEmblem";
 import { DIVISIONS, TIERS, TIER_LABELS, divisionRequired } from "@/lib/ranks";
 import type { Tier } from "@/lib/ranks";
@@ -17,8 +18,16 @@ export function RegisterForm() {
   const [loading, setLoading] = useState(false);
   const [fetchingRank, setFetchingRank] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loggedIn, setLoggedIn] = useState(false);
 
   const needsDivision = divisionRequired(startTier);
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((r) => r.json())
+      .then((d) => setLoggedIn(!!d.user))
+      .catch(() => setLoggedIn(false));
+  }, []);
 
   function parseRiotId() {
     let name = gameName.trim();
@@ -91,6 +100,23 @@ export function RegisterForm() {
 
   return (
     <form onSubmit={onSubmit} className="card-glow max-w-lg mx-auto space-y-5 relative z-[1]">
+      {loggedIn ? (
+        <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-300">
+          Connecté — ce compte LoL sera automatiquement relié à ton profil. Tu peux
+          aussi en ajouter d&apos;autres depuis{" "}
+          <Link href="/compte" className="underline">
+            Mon compte
+          </Link>
+          .
+        </p>
+      ) : (
+        <p className="text-sm text-muted text-center">
+          <Link href="/compte/inscription" className="text-gold-light hover:underline">
+            Crée un compte site
+          </Link>{" "}
+          pour ta photo de profil dans les classements.
+        </p>
+      )}
       <div>
         <label className="label" htmlFor="gameName">
           Pseudo (Riot ID)

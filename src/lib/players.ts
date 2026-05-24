@@ -1,18 +1,40 @@
+import { userAvatarUrl } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import {
+  playerWithOwnerInclude,
+  type PlayerWithOwner,
+} from "@/lib/player-include";
 import {
   computeLpProgress,
   formatLpProgress,
   formatRank,
   rankToScore,
 } from "@/lib/ranks";
-import { parseChampionStats, type ChampionStat } from "@/lib/champion-stats";
+import {
+  parseChampionStats,
+  pickMainChampion,
+  type ChampionStat,
+} from "@/lib/champion-stats";
+import { getPresence, type PresenceInfo } from "@/lib/presence";
+import {
+  parseRoleStats,
+  pickMainRole,
+  type RoleStat,
+} from "@/lib/role-stats";
 import { formatStreak, type StreakType } from "@/lib/streak";
+
+export type PlayerOwnerView = {
+  id: string;
+  displayName: string;
+  avatarUrl: string | null;
+};
 
 export type PlayerView = {
   id: string;
   gameName: string;
   tagLine: string;
   riotId: string;
+  owner: PlayerOwnerView | null;
   startTier: string;
   startRank: string;
   currentTier: string | null;
@@ -32,33 +54,16 @@ export type PlayerView = {
   streakCount: number;
   streakLabel: string | null;
   championStats: ChampionStat[];
+  roleStats: RoleStat[];
+  mainChampion: ChampionStat | null;
+  mainRole: RoleStat | null;
+  inGame: boolean;
+  presence: PresenceInfo;
   lastSyncedAt: string | null;
   createdAt: string;
 };
 
-function toView(p: {
-  id: string;
-  gameName: string;
-  tagLine: string;
-  startTier: string;
-  startDivision: string;
-  startLp: number;
-  currentTier: string | null;
-  currentDivision: string | null;
-  currentLp: number | null;
-  lpGained: number;
-  lpLost: number;
-  wins: number | null;
-  losses: number | null;
-  avgKda: number | null;
-  kdaGames: number | null;
-  lastGameAt: Date | null;
-  streakType: string | null;
-  streakCount: number;
-  championStats: unknown;
-  lastSyncedAt: Date | null;
-  createdAt: Date;
-}): PlayerView {
+function toView(p: PlayerWithOwner): PlayerView {
   const hasCurrent =
     p.currentTier && p.currentDivision != null && p.currentLp != null;
 
@@ -93,11 +98,24 @@ function toView(p: {
       ? p.streakType
       : null;
 
+  const championStats = parseChampionStats(p.championStats);
+  const roleStats = parseRoleStats(p.roleStats);
+  const lastGameAtIso = p.lastGameAt?.toISOString() ?? null;
+
+  const owner = p.user
+    ? {
+        id: p.user.id,
+        displayName: p.user.displayName,
+        avatarUrl: userAvatarUrl(p.user.id, !!p.user.avatarMime),
+      }
+    : null;
+
   return {
     id: p.id,
     gameName: p.gameName,
     tagLine: p.tagLine,
     riotId: `${p.gameName}#${p.tagLine}`,
+    owner,
     startTier: p.startTier,
     startRank: formatRank(p.startTier, p.startDivision, p.startLp),
     currentTier: p.currentTier,
@@ -116,18 +134,26 @@ function toView(p: {
     winrate,
     avgKda: p.avgKda,
     kdaGames: p.kdaGames,
-    lastGameAt: p.lastGameAt?.toISOString() ?? null,
+    lastGameAt: lastGameAtIso,
     streakType,
     streakCount: p.streakCount,
     streakLabel: formatStreak(streakType, p.streakCount),
-    championStats: parseChampionStats(p.championStats),
+    championStats,
+    roleStats,
+    mainChampion: pickMainChampion(championStats),
+    mainRole: pickMainRole(roleStats),
+    inGame: p.inGame,
+    presence: getPresence(p.inGame, lastGameAtIso),
     lastSyncedAt: p.lastSyncedAt?.toISOString() ?? null,
     createdAt: p.createdAt.toISOString(),
   };
 }
 
 export async function getPlayerById(id: string): Promise<PlayerView | null> {
-  const player = await prisma.player.findUnique({ where: { id } });
+  const player = await prisma.player.findUnique({
+    where: { id },
+    include: playerWithOwnerInclude,
+  });
   if (!player) return null;
   return toView(player);
 }
@@ -135,6 +161,7 @@ export async function getPlayerById(id: string): Promise<PlayerView | null> {
 export async function listPlayers(): Promise<PlayerView[]> {
   const players = await prisma.player.findMany({
     orderBy: { createdAt: "asc" },
+    include: playerWithOwnerInclude,
   });
   return players.map(toView);
 }

@@ -1,8 +1,15 @@
 import type { PlayerView } from "@/lib/players";
+import { MIN_GAMES_FOR_RANKING } from "@/lib/role-stats";
 import { rankToScore } from "@/lib/ranks";
 import { formatKdaValue } from "@/lib/kda";
 
-export type LeaderboardId = "lp" | "rank" | "winrate" | "kda";
+export type LeaderboardId =
+  | "lp"
+  | "rank"
+  | "winrate"
+  | "kda"
+  | "champion"
+  | "role";
 
 export type LeaderboardMeta = {
   id: LeaderboardId;
@@ -41,7 +48,33 @@ export const LEADERBOARDS: LeaderboardMeta[] = [
     description: "KDA moyen sur les parties ranked depuis l'inscription",
     metricLabel: "KDA",
   },
+  {
+    id: "champion",
+    label: "Main champion",
+    shortLabel: "Champ",
+    description: `Meilleur winrate sur le champion le plus joué (min. ${MIN_GAMES_FOR_RANKING} parties)`,
+    metricLabel: "WR main",
+  },
+  {
+    id: "role",
+    label: "Main rôle",
+    shortLabel: "Rôle",
+    description: `Meilleur winrate sur le rôle le plus joué (min. ${MIN_GAMES_FOR_RANKING} parties)`,
+    metricLabel: "WR rôle",
+  },
 ];
+
+function mainChampionScore(p: PlayerView): number {
+  const main = p.mainChampion;
+  if (!main || main.games < MIN_GAMES_FOR_RANKING) return -1;
+  return main.winrate;
+}
+
+function mainRoleScore(p: PlayerView): number {
+  const main = p.mainRole;
+  if (!main || main.games < MIN_GAMES_FOR_RANKING) return -1;
+  return main.winrate;
+}
 
 function rankScore(p: PlayerView): number {
   if (!p.currentTier || p.currentDivision == null || p.currentLp == null) {
@@ -60,6 +93,10 @@ function sortKey(p: PlayerView, id: LeaderboardId): number {
       return p.winrate ?? -1;
     case "kda":
       return p.avgKda ?? -1;
+    case "champion":
+      return mainChampionScore(p);
+    case "role":
+      return mainRoleScore(p);
   }
 }
 
@@ -80,6 +117,16 @@ export function formatMetric(p: PlayerView, id: LeaderboardId): string {
       return p.winrate != null ? `${p.winrate}%` : "—";
     case "kda":
       return p.avgKda != null ? formatKdaValue(p.avgKda) : "—";
+    case "champion":
+      if (!p.mainChampion || p.mainChampion.games < MIN_GAMES_FOR_RANKING) {
+        return "—";
+      }
+      return `${p.mainChampion.winrate}%`;
+    case "role":
+      if (!p.mainRole || p.mainRole.games < MIN_GAMES_FOR_RANKING) {
+        return "—";
+      }
+      return `${p.mainRole.winrate}%`;
   }
 }
 
@@ -98,6 +145,14 @@ export function metricTone(
     if (p.avgKda >= 3) return "positive";
     if (p.avgKda < 2) return "negative";
   }
+  if (
+    (id === "champion" && p.mainChampion && p.mainChampion.games >= MIN_GAMES_FOR_RANKING) ||
+    (id === "role" && p.mainRole && p.mainRole.games >= MIN_GAMES_FOR_RANKING)
+  ) {
+    const wr = id === "champion" ? p.mainChampion!.winrate : p.mainRole!.winrate;
+    if (wr >= 55) return "positive";
+    if (wr < 45) return "negative";
+  }
   return "neutral";
 }
 
@@ -114,6 +169,14 @@ export function metricSubtext(p: PlayerView, id: LeaderboardId): string | null {
     case "kda":
       return p.kdaGames != null && p.kdaGames > 0
         ? `${p.kdaGames} partie${p.kdaGames > 1 ? "s" : ""}`
+        : null;
+    case "champion":
+      return p.mainChampion
+        ? `${p.mainChampion.championName} · ${p.mainChampion.games} games`
+        : null;
+    case "role":
+      return p.mainRole
+        ? `${p.mainRole.label} · ${p.mainRole.games} games`
         : null;
   }
 }

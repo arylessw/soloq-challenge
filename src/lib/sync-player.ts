@@ -2,12 +2,26 @@ import { prisma } from "@/lib/db";
 import { computeChampionStats } from "@/lib/champion-stats";
 import { computeAvgKda } from "@/lib/kda";
 import { recordLpSnapshot, seedInitialLpSnapshot } from "@/lib/lp-snapshots";
+import { computeRoleStats } from "@/lib/role-stats";
 import { computeLpProgress } from "@/lib/ranks";
+import { fetchInGame } from "@/lib/riot-spectator";
 import { computeStreak } from "@/lib/streak";
 import { fetchAccount, fetchSoloQueue } from "@/lib/riot";
 import { fetchRecentRankedMatches, MATCH_HISTORY_COUNT } from "@/lib/riot-matches";
 
 const MATCH_STATS_REFRESH_MS = 30 * 60 * 1000;
+
+async function refreshPresence(playerId: string, puuid: string): Promise<void> {
+  try {
+    const inGame = await fetchInGame(puuid);
+    await prisma.player.update({
+      where: { id: playerId },
+      data: { inGame },
+    });
+  } catch {
+    // Présence optionnelle
+  }
+}
 
 async function refreshMatchStats(
   playerId: string,
@@ -32,9 +46,10 @@ async function refreshMatchStats(
     const kdaStats = computeAvgKda(matches);
     const streak = computeStreak(matches);
     const championStats = computeChampionStats(matches);
+    const roleStats = computeRoleStats(matches);
     const lastGameAt =
       matches.length > 0
-        ? new Date(Math.max(...matches.map((m) => m.gameCreation)))
+        ? new Date(Math.max(...matches.map((m) => m.gameEndMs)))
         : null;
 
     await prisma.player.update({
@@ -46,6 +61,7 @@ async function refreshMatchStats(
         streakType: streak?.type ?? null,
         streakCount: streak?.count ?? 0,
         championStats: championStats.length > 0 ? championStats : undefined,
+        roleStats: roleStats.length > 0 ? roleStats : undefined,
         lastKdaSyncedAt: new Date(),
       },
     });
@@ -101,12 +117,15 @@ export async function syncPlayerById(id: string): Promise<{ ok: boolean; error?:
       currentLp: stats.lp,
     });
 
-    await refreshMatchStats(
-      id,
-      stats.puuid,
-      player.createdAt,
-      player.lastKdaSyncedAt
-    );
+    await Promise.all([
+      refreshMatchStats(
+        id,
+        stats.puuid,
+        player.createdAt,
+        player.lastKdaSyncedAt
+      ),
+      refreshPresence(id, stats.puuid),
+    ]);
 
     return { ok: true };
   } catch (e) {
@@ -123,12 +142,15 @@ export async function syncPlayerById(id: string): Promise<{ ok: boolean; error?:
             lastSyncedAt: new Date(),
           },
         });
-        await refreshMatchStats(
-          id,
-          account.puuid,
-          player.createdAt,
-          player.lastKdaSyncedAt
-        );
+        await Promise.all([
+          refreshMatchStats(
+            id,
+            account.puuid,
+            player.createdAt,
+            player.lastKdaSyncedAt
+          ),
+          refreshPresence(id, account.puuid),
+        ]);
         return { ok: true };
       } catch (inner) {
         return {

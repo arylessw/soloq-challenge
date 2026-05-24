@@ -21,6 +21,8 @@ export type MatchParticipantDto = {
   teamId: number;
   championId: number;
   championName: string;
+  teamPosition?: string;
+  individualPosition?: string;
   riotIdGameName: string;
   riotIdTagline: string;
   kills: number;
@@ -37,10 +39,12 @@ export type RawMatchForPlayer = {
   matchId: string;
   gameCreation: number;
   gameDuration: number;
+  gameEndMs: number;
   queueId: number;
   win: boolean;
   championId: number;
   championName: string;
+  teamPosition: string | null;
   kills: number;
   deaths: number;
   assists: number;
@@ -101,14 +105,23 @@ export async function fetchRecentRankedMatches(
       const participant = participantForPuuid(match, puuid);
       if (!participant) continue;
 
+      const teamPosition =
+        participant.teamPosition ||
+        participant.individualPosition ||
+        null;
+
       matches.push({
         matchId: match.metadata.matchId,
         gameCreation: match.info.gameCreation,
         gameDuration: match.info.gameDuration,
+        gameEndMs:
+          match.info.gameCreation + match.info.gameDuration * 1000,
         queueId: match.info.queueId,
         win: participant.win,
         championId: participant.championId,
         championName: participant.championName,
+        teamPosition:
+          teamPosition && teamPosition !== "NONE" ? teamPosition : null,
         kills: participant.kills,
         deaths: participant.deaths,
         assists: participant.assists,

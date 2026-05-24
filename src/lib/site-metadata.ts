@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
+import { getSiteUrl } from "@/lib/site-url";
 
-const siteUrl =
-  process.env.VERCEL_URL != null
-    ? `https://${process.env.VERCEL_URL}`
-    : process.env.NEXT_PUBLIC_SITE_URL ?? "https://soloq-challenge-kappa.vercel.app";
+const siteUrl = getSiteUrl();
 
 export const siteMetadata: Metadata = {
   title: "SoloQ Challenge — EUW",
@@ -22,5 +20,16 @@ export const siteMetadata: Metadata = {
     card: "summary_large_image",
     title: "SoloQ Challenge — EUW",
     description: "Classement du défi SoloQ entre amis sur EUW.",
+  },
+  appleWebApp: {
+    capable: true,
+    title: "SoloQ",
+    statusBarStyle: "black-translucent",
+  },
+  applicationName: "SoloQ Challenge",
+  icons: {
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+    apple: "/icon.svg",
+    shortcut: "/icon.svg",
   },
 };

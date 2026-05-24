@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
 import { notFound } from "next/navigation";
 import { championIconUrl } from "@/lib/champion-stats";
+import { roleIconUrl } from "@/lib/role-stats";
 import { getLpHistory, type LpHistoryPoint } from "@/lib/lp-snapshots";
 import { getPlayerById } from "@/lib/players";
 
@@ -93,8 +94,9 @@ export default async function PlayerOgImage({ params }: Props) {
       ? `${player.wins}V / ${player.losses}D${player.winrate != null ? ` · ${player.winrate}% WR` : ""}`
       : null;
 
-  const topChampion = player.championStats[0] ?? null;
-  const showLpSparkline = !topChampion && lpHistory.length >= 2;
+  const topChampion = player.mainChampion ?? player.championStats[0] ?? null;
+  const topRole = player.mainRole ?? player.roleStats[0] ?? null;
+  const showLpSparkline = !topChampion && !topRole && lpHistory.length >= 2;
 
   return new ImageResponse(
     (
@@ -167,7 +169,7 @@ export default async function PlayerOgImage({ params }: Props) {
                   textTransform: "uppercase",
                 }}
               >
-                Main · 20 games
+                Main champion
               </div>
               <div
                 style={{
@@ -191,6 +193,41 @@ export default async function PlayerOgImage({ params }: Props) {
               </div>
               <div style={{ display: "flex", fontSize: 14, color: "#8b9cb8" }}>
                 {`${topChampion.games} parties · ${topChampion.winrate}% WR`}
+              </div>
+              {topRole ? (
+                <div style={{ display: "flex", fontSize: 13, color: "#8b9cb8" }}>
+                  {`Rôle ${topRole.label} · ${topRole.winrate}% WR`}
+                </div>
+              ) : null}
+            </div>
+          ) : topRole ? (
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 10,
+                flexShrink: 0,
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  fontSize: 11,
+                  color: "#8b9cb8",
+                  letterSpacing: 3,
+                  textTransform: "uppercase",
+                }}
+              >
+                Main rôle
+              </div>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={roleIconUrl(topRole.role)} width={80} height={80} alt="" />
+              <div style={{ display: "flex", fontSize: 16, color: "#f0e6b8", fontWeight: 600 }}>
+                {topRole.label}
+              </div>
+              <div style={{ display: "flex", fontSize: 14, color: "#8b9cb8" }}>
+                {`${topRole.games} parties · ${topRole.winrate}% WR`}
               </div>
             </div>
           ) : showLpSparkline ? (
@@ -236,6 +273,9 @@ export default async function PlayerOgImage({ params }: Props) {
           ) : null}
           {streak ? (
             <div style={{ fontSize: 20, color: "#f0e6b8" }}>{streak}</div>
+          ) : null}
+          {player.presence.status === "in_game" ? (
+            <div style={{ fontSize: 20, color: "#34d399" }}>En partie</div>
           ) : null}
         </div>
       </div>

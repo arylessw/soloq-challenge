@@ -1,6 +1,11 @@
+import Image from "next/image";
 import Link from "next/link";
 import { PlayerMeta } from "@/components/PlayerMeta";
 import { RankWithEmblem } from "@/components/RankEmblem";
+import { UserAvatar } from "@/components/UserAvatar";
+import { championIconUrl } from "@/lib/champion-stats";
+import { playerListName, playerListSubtitle } from "@/lib/player-display";
+import { roleIconUrl } from "@/lib/role-stats";
 import { formatRelativeTimeFromIso } from "@/lib/format-time";
 import type { PlayerView } from "@/lib/players";
 import {
@@ -69,11 +74,43 @@ export function LeaderboardTable({ players, board, startRank = 1 }: Props) {
                 <td className="py-4 pr-4 font-medium min-w-[140px]">
                   <Link
                     href={`/games/${p.id}`}
-                    className="hover:text-gold-light transition inline-flex flex-col"
+                    className="hover:text-gold-light transition inline-flex items-start gap-2.5"
                   >
-                    <span>{p.gameName}</span>
-                    <span className="text-[11px] text-muted font-normal">#{p.tagLine}</span>
-                    <PlayerMeta player={p} />
+                    {p.owner && (
+                      <UserAvatar
+                        displayName={p.owner.displayName}
+                        avatarUrl={p.owner.avatarUrl}
+                        size={36}
+                        className="mt-0.5"
+                      />
+                    )}
+                    {board.id === "champion" && p.mainChampion && !p.owner && (
+                      <Image
+                        src={championIconUrl(p.mainChampion.championName)}
+                        alt=""
+                        width={36}
+                        height={36}
+                        className="rounded-lg shrink-0 mt-0.5"
+                        unoptimized
+                      />
+                    )}
+                    {board.id === "role" && p.mainRole && (
+                      <Image
+                        src={roleIconUrl(p.mainRole.role)}
+                        alt=""
+                        width={32}
+                        height={32}
+                        className="rounded-lg shrink-0 mt-0.5"
+                        unoptimized
+                      />
+                    )}
+                    <span className="inline-flex flex-col min-w-0">
+                      <span>{playerListName(p)}</span>
+                      <span className="text-[11px] text-muted font-normal">
+                        {playerListSubtitle(p)}
+                      </span>
+                      <PlayerMeta player={p} />
+                    </span>
                   </Link>
                 </td>
 
