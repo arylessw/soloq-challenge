@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "postinstall": "prisma generate",
-    "build": "prisma generate && prisma migrate deploy && next build",
+    "postinstall": "node scripts/prisma-generate.mjs",
+    "build": "node scripts/build.mjs",
     "start": "next start",
     "lint": "next lint",
     "db:push": "prisma db push",
