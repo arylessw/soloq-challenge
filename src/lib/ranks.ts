@@ -109,7 +109,11 @@ export function divisionIndex(division: string): number {
   return DIVISION_ORDER[division.toUpperCase() as Division] ?? 0;
 }
 
-const LP_PER_DIVISION = 100;
+/** LP max par division (Riot) */
+export const LP_PER_DIVISION = 100;
+
+/** 4 divisions par tier → 400 LP pour passer un tier entier */
+export const LP_PER_TIER = LP_PER_DIVISION * DIVISIONS.length;
 
 export type RankSnapshot = {
   tier: string;
@@ -117,13 +121,16 @@ export type RankSnapshot = {
   lp: number;
 };
 
-/** Score linéaire en « points LP » (100 LP par division) */
+/**
+ * Score linéaire en « points LP » : 100 LP par division, 400 LP par tier.
+ * (Ancien bug : tier × 10_000 gonflait +9000 LP fictifs à chaque montée de rang.)
+ */
 export function rankToLpTotal(tier: string, division: string, lp: number): number {
   const ti = tierIndex(tier);
   if (ti >= TIER_ORDER.MASTER) {
-    return ti * 1_000_000 + lp;
+    return ti * LP_PER_TIER + lp;
   }
-  return ti * 10_000 + divisionIndex(division) * LP_PER_DIVISION + lp;
+  return ti * LP_PER_TIER + divisionIndex(division) * LP_PER_DIVISION + lp;
 }
 
 /**

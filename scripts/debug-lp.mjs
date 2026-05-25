@@ -10,10 +10,12 @@ const DIVISION_ORDER = { IV: 0, III: 1, II: 2, I: 3 };
 function tierIndex(t) { return TIER_ORDER[t?.toUpperCase()] ?? 0; }
 function divisionIndex(d) { return DIVISION_ORDER[d?.toUpperCase()] ?? 0; }
 
+const LP_PER_TIER = LP_PER_DIVISION * 4;
+
 function rankToLpTotal(tier, division, lp) {
   const ti = tierIndex(tier);
-  if (ti >= 7) return ti * 1_000_000 + lp;
-  return ti * 10_000 + divisionIndex(division) * LP_PER_DIVISION + lp;
+  if (ti >= 7) return ti * LP_PER_TIER + lp;
+  return ti * LP_PER_TIER + divisionIndex(division) * LP_PER_DIVISION + lp;
 }
 
 function lpStep(from, to) {
