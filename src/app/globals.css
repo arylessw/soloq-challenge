@@ -533,6 +533,85 @@
     }
   }
 
+  /* Accent global (sélecteur pied de page) */
+  [data-site-theme="emerald"] {
+    --color-gold: #34d399;
+    --color-gold-light: #a7f3d0;
+    --color-gold-dim: #059669;
+  }
+
+  [data-site-theme="cyan"] {
+    --color-gold: #22d3ee;
+    --color-gold-light: #a5f3fc;
+    --color-gold-dim: #0e7490;
+  }
+
+  [data-site-theme="violet"] {
+    --color-gold: #a78bfa;
+    --color-gold-light: #ddd6fe;
+    --color-gold-dim: #6d28d9;
+  }
+
+  [data-site-theme="rose"] {
+    --color-gold: #fb7185;
+    --color-gold-light: #fecdd3;
+    --color-gold-dim: #be123c;
+  }
+
+  /* Profil joueur : accent selon le rang actuel */
+  .profile-tier-accent[data-tier-accent="IRON"] {
+    --profile-accent: #a8a29e;
+    --profile-accent-light: #d6d3d1;
+  }
+  .profile-tier-accent[data-tier-accent="BRONZE"] {
+    --profile-accent: #ea580c;
+    --profile-accent-light: #fdba74;
+  }
+  .profile-tier-accent[data-tier-accent="SILVER"] {
+    --profile-accent: #94a3b8;
+    --profile-accent-light: #cbd5e1;
+  }
+  .profile-tier-accent[data-tier-accent="GOLD"] {
+    --profile-accent: #eab308;
+    --profile-accent-light: #fde047;
+  }
+  .profile-tier-accent[data-tier-accent="PLATINUM"] {
+    --profile-accent: #2dd4bf;
+    --profile-accent-light: #99f6e4;
+  }
+  .profile-tier-accent[data-tier-accent="EMERALD"] {
+    --profile-accent: #34d399;
+    --profile-accent-light: #a7f3d0;
+  }
+  .profile-tier-accent[data-tier-accent="DIAMOND"] {
+    --profile-accent: #22d3ee;
+    --profile-accent-light: #a5f3fc;
+  }
+  .profile-tier-accent[data-tier-accent="MASTER"] {
+    --profile-accent: #a78bfa;
+    --profile-accent-light: #ddd6fe;
+  }
+  .profile-tier-accent[data-tier-accent="GRANDMASTER"] {
+    --profile-accent: #f87171;
+    --profile-accent-light: #fecaca;
+  }
+  .profile-tier-accent[data-tier-accent="CHALLENGER"] {
+    --profile-accent: #7dd3fc;
+    --profile-accent-light: #e0f2fe;
+  }
+
+  .profile-tier-accent .card-glow {
+    border-color: color-mix(in srgb, var(--profile-accent, #d4af37) 38%, transparent);
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--profile-accent, #d4af37) 12%, transparent),
+      0 12px 48px color-mix(in srgb, var(--profile-accent, #d4af37) 14%, transparent);
+  }
+
+  .profile-tier-accent h1.text-gold-light,
+  .profile-tier-accent h2.text-gold-light {
+    color: var(--profile-accent-light, var(--color-gold-light));
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .board-animate-in-right,
     .board-animate-in-left,

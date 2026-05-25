@@ -8,6 +8,7 @@ import { PlayerMatchHistory } from "@/components/PlayerMatchHistory";
 import { PlayerMeta } from "@/components/PlayerMeta";
 import { RankEmblem } from "@/components/RankEmblem";
 import { ShareProfileButton } from "@/components/ShareProfileButton";
+import { TierProfileAccent } from "@/components/TierProfileAccent";
 import { TitleBadgeList } from "@/components/TitleBadge";
 import { getLpHistory } from "@/lib/lp-snapshots";
 import { assignTitles } from "@/lib/player-titles";
@@ -58,6 +59,7 @@ export default async function PlayerGamesPage({ params }: Props) {
   const titles = assignTitles(allPlayers).get(id) ?? [];
 
   return (
+    <TierProfileAccent tier={player.currentTier}>
     <div>
       <Link
         href="/games"
@@ -144,5 +146,6 @@ export default async function PlayerGamesPage({ params }: Props) {
       </h2>
       <PlayerMatchHistory playerId={id} />
     </div>
+    </TierProfileAccent>
   );
 }

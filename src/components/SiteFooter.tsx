@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ThemeAccentPicker } from "@/components/ThemeAccentPicker";
 
 export function SiteFooter() {
   return (
@@ -10,6 +11,7 @@ export function SiteFooter() {
             League of Legends and Riot Games are trademarks of Riot Games, Inc.
           </span>
         </p>
+        <ThemeAccentPicker />
         <nav className="flex gap-4 shrink-0">
           <Link href="/terms" className="hover:text-gold-light transition">
             Conditions

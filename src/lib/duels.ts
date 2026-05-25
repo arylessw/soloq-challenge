@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { notifyDiscordDuelEnd } from "@/lib/discord";
 import { getPlayerById, listPlayers, type PlayerView } from "@/lib/players";
 import { playerWithOwnerInclude } from "@/lib/player-include";
 
@@ -69,6 +70,22 @@ async function refreshDuelStatus(): Promise<void> {
       where: { id: d.id },
       data: { status: "finished", winnerId },
     });
+
+    if (winnerId) {
+      const winner = winnerId === d.playerAId ? a : b;
+      const loser = winnerId === d.playerAId ? b : a;
+      try {
+        await notifyDiscordDuelEnd(
+          winner.riotId,
+          loser.riotId,
+          metric,
+          winnerId === d.playerAId ? scoreA : scoreB,
+          winnerId === d.playerAId ? scoreB : scoreA
+        );
+      } catch (e) {
+        console.error("[duels] Discord notify", e);
+      }
+    }
   }
 }
 

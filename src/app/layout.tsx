@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Cinzel, DM_Sans } from "next/font/google";
 import { Nav } from "@/components/Nav";
+import { SiteThemeProvider } from "@/components/SiteThemeProvider";
 import { PwaRegister } from "@/components/PwaRegister";
 import { RiotApiBanner } from "@/components/RiotApiBanner";
 import { SiteAdLayout } from "@/components/SiteAdLayout";
@@ -28,15 +29,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr" className={`${cinzel.variable} ${dmSans.variable}`}>
+    <html lang="fr" className={`${cinzel.variable} ${dmSans.variable}`} data-site-theme="gold">
       <body>
-        <RiotApiBanner />
-        <Nav />
-        <SiteAdLayout>
-          <main className="page-shell">{children}</main>
-        </SiteAdLayout>
-        <SiteFooter />
-        <PwaRegister />
+        <SiteThemeProvider>
+          <RiotApiBanner />
+          <Nav />
+          <SiteAdLayout>
+            <main className="page-shell">{children}</main>
+          </SiteAdLayout>
+          <SiteFooter />
+          <PwaRegister />
+        </SiteThemeProvider>
       </body>
     </html>
   );

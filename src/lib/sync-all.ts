@@ -1,4 +1,8 @@
 import { prisma } from "@/lib/db";
+import {
+  capturePreSyncSnapshot,
+  notifyDiscordAfterSync,
+} from "@/lib/discord-sync";
 import { syncPlayerById } from "@/lib/sync-player";
 
 export type SyncResult = {
@@ -13,6 +17,7 @@ export async function syncAllPlayers(): Promise<{
   at: string;
 }> {
   const players = await prisma.player.findMany();
+  const before = await capturePreSyncSnapshot();
   const results: SyncResult[] = [];
 
   for (const player of players) {
@@ -21,6 +26,12 @@ export async function syncAllPlayers(): Promise<{
     if (players.length > 1) {
       await new Promise((r) => setTimeout(r, 1200));
     }
+  }
+
+  try {
+    await notifyDiscordAfterSync(before);
+  } catch (e) {
+    console.error("[sync-all] Discord notify", e);
   }
 
   return {
