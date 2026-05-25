@@ -1,4 +1,6 @@
 import { PresenceBadge } from "@/components/PresenceBadge";
+import { TitleBadgeList } from "@/components/TitleBadge";
+import type { PlayerTitle } from "@/lib/player-titles";
 import type { PlayerView } from "@/lib/players";
 import type { StreakType } from "@/lib/streak";
 
@@ -24,9 +26,16 @@ export function StreakBadge({
   );
 }
 
-export function PlayerMeta({ player }: { player: PlayerView }) {
+export function PlayerMeta({
+  player,
+  titles = [],
+}: {
+  player: PlayerView;
+  titles?: PlayerTitle[];
+}) {
   return (
     <div className="flex flex-wrap items-center gap-1.5 mt-1">
+      <TitleBadgeList titles={titles} max={2} />
       <PresenceBadge presence={player.presence} />
       <StreakBadge type={player.streakType} label={player.streakLabel} />
     </div>

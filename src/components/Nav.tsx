@@ -7,6 +7,7 @@ import { UserAvatar } from "@/components/UserAvatar";
 
 const links = [
   { href: "/", label: "Classement" },
+  { href: "/duels", label: "Duels" },
   { href: "/games", label: "Games" },
   { href: "/inscription", label: "Défi LoL" },
 ];
@@ -41,7 +42,7 @@ export function Nav() {
       <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3.5 sm:px-6 gap-3">
         <Link href="/" className="group flex items-center gap-3 shrink-0">
           <span
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-gold/30 font-display text-sm text-gold transition group-hover:border-gold/60 group-hover:shadow-[0_0_20px_-6px_rgba(212,175,55,0.5)]"
+            className="nav-logo-mark flex h-9 w-9 items-center justify-center rounded-lg border border-gold/30 font-display text-sm text-gold transition group-hover:border-gold/60"
             aria-hidden
           >
             SQ

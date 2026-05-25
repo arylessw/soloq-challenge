@@ -21,14 +21,12 @@ export function PlayerOfWeekBanner({ player, hasData }: Props) {
   return (
     <Link
       href={`/games/${player.playerId}`}
-      className="card-glow mb-8 block relative z-[1] transition hover:border-gold/40 hover:-translate-y-0.5 group"
+      className="potw-banner mb-8 block relative z-[1] group"
     >
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="text-[10px] uppercase tracking-[0.3em] text-gold/80 mb-1">
-            Joueur de la semaine
-          </p>
-          <h2 className="font-display text-2xl text-gold-light group-hover:text-gold transition">
+          <p className="potw-label">Joueur de la semaine</p>
+          <h2 className="font-display text-2xl sm:text-3xl text-gold-light group-hover:text-gold transition">
             {player.gameName}
             <span className="text-muted text-base font-sans ml-2">
               #{player.tagLine}
@@ -39,10 +37,10 @@ export function PlayerOfWeekBanner({ player, hasData }: Props) {
           </p>
         </div>
         <div className="text-right">
-          <p className="text-emerald-400 font-display text-3xl tabular-nums">
+          <p className="text-emerald-400 font-display text-3xl sm:text-4xl tabular-nums drop-shadow-lg">
             +{player.lpDelta} LP
           </p>
-          <p className="text-xs text-muted mt-1">cette semaine</p>
+          <p className="text-xs text-muted mt-1 uppercase tracking-wider">cette semaine</p>
         </div>
       </div>
     </Link>

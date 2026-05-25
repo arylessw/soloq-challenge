@@ -7,6 +7,7 @@ import { championIconUrl } from "@/lib/champion-stats";
 import { playerListName, playerListSubtitle } from "@/lib/player-display";
 import { roleIconUrl } from "@/lib/role-stats";
 import type { PlayerView } from "@/lib/players";
+import type { PlayerTitle } from "@/lib/player-titles";
 import {
   formatMetric,
   metricSubtext,
@@ -21,9 +22,10 @@ const PODIUM_HEIGHT = ["h-24", "h-32", "h-20"] as const;
 type Props = {
   players: PlayerView[];
   boardId: LeaderboardId;
+  titleMap?: Map<string, PlayerTitle[]>;
 };
 
-export function LeaderboardPodium({ players, boardId }: Props) {
+export function LeaderboardPodium({ players, boardId, titleMap }: Props) {
   const top = players.slice(0, 3);
   if (top.length === 0) return null;
 
@@ -92,7 +94,7 @@ export function LeaderboardPodium({ players, boardId }: Props) {
             {playerListName(p)}
           </p>
           <p className="text-[11px] text-muted truncate">{playerListSubtitle(p)}</p>
-          <PlayerMeta player={p} />
+          <PlayerMeta player={p} titles={titleMap?.get(p.id)} />
           <p
             className={`font-display text-2xl mt-2 ${
               tone === "positive"

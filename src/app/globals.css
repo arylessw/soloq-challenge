@@ -17,18 +17,20 @@
 @layer base {
   body {
     @apply bg-bg text-white font-sans antialiased min-h-screen;
+    background-color: var(--color-bg);
     background-image:
-      linear-gradient(rgba(212, 175, 55, 0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(212, 175, 55, 0.03) 1px, transparent 1px),
-      radial-gradient(ellipse 90% 60% at 50% -30%, rgba(212, 175, 55, 0.14), transparent 55%),
-      radial-gradient(ellipse 50% 40% at 0% 80%, rgba(59, 130, 246, 0.08), transparent 50%),
-      radial-gradient(ellipse 40% 35% at 100% 20%, rgba(139, 92, 246, 0.06), transparent 45%);
+      linear-gradient(rgba(212, 175, 55, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(212, 175, 55, 0.04) 1px, transparent 1px),
+      radial-gradient(ellipse 100% 70% at 50% -20%, rgba(212, 175, 55, 0.18), transparent 50%),
+      radial-gradient(ellipse 45% 50% at 0% 90%, rgba(59, 130, 246, 0.1), transparent 55%),
+      radial-gradient(ellipse 40% 45% at 100% 15%, rgba(139, 92, 246, 0.08), transparent 50%);
     background-size:
-      48px 48px,
-      48px 48px,
+      56px 56px,
+      56px 56px,
       auto,
       auto,
       auto;
+    background-attachment: fixed;
   }
 
   ::selection {
@@ -45,13 +47,76 @@
     @apply relative mx-auto max-w-5xl px-4 py-10 sm:px-6;
   }
 
+  /* Panneaux pub latéraux — desktop large uniquement, jamais de popup */
+  .site-ad-layout {
+    @apply relative w-full;
+  }
+
+  .site-ad-content {
+    @apply relative z-[1] w-full;
+  }
+
+  .ad-rail {
+    @apply hidden;
+  }
+
+  @media (min-width: 1400px) {
+    .ad-rail {
+      @apply block fixed z-0 w-[160px];
+      top: 5.5rem;
+    }
+
+    .ad-rail-left {
+      left: max(0.75rem, calc(50% - 32rem - 11rem));
+    }
+
+    .ad-rail-right {
+      right: max(0.75rem, calc(50% - 32rem - 11rem));
+    }
+
+    .ad-panel-inner {
+      @apply rounded-xl border border-white/[0.08] overflow-hidden;
+      background: linear-gradient(
+        180deg,
+        rgba(18, 26, 46, 0.92) 0%,
+        rgba(12, 18, 32, 0.96) 100%
+      );
+      min-height: 600px;
+      width: 160px;
+    }
+
+    .ad-panel-label {
+      @apply block text-center text-[10px] uppercase tracking-[0.2em] text-muted/60 py-2 border-b border-white/[0.06];
+    }
+
+    .ad-panel-slot {
+      @apply mx-2 my-3 rounded-lg border border-dashed border-white/10;
+      min-height: 520px;
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    .ad-panel-hint {
+      @apply text-center text-[10px] text-muted/50 px-2 pb-3 leading-relaxed;
+    }
+  }
+
   .page-hero {
-    @apply relative mb-12 text-center;
+    @apply relative mb-12 text-center overflow-hidden;
+  }
+
+  .page-hero-orb {
+    @apply absolute left-1/2 top-0 -translate-x-1/2 w-[min(480px,90vw)] h-32 pointer-events-none opacity-60;
+    background: radial-gradient(
+      ellipse at center,
+      rgba(212, 175, 55, 0.35) 0%,
+      transparent 70%
+    );
+    filter: blur(24px);
   }
 
   .page-hero::before {
     content: "";
-    @apply absolute left-1/2 top-0 -translate-x-1/2 w-px h-8;
+    @apply absolute left-1/2 top-0 -translate-x-1/2 w-px h-10 z-[1];
     background: linear-gradient(to bottom, transparent, var(--color-gold), transparent);
   }
 
@@ -61,13 +126,138 @@
   }
 
   .page-title {
-    @apply font-display text-4xl sm:text-5xl text-transparent bg-clip-text mb-3;
+    @apply relative z-[1] font-display text-4xl sm:text-5xl lg:text-6xl text-transparent bg-clip-text mb-3 tracking-tight;
     background-image: linear-gradient(
       135deg,
       var(--color-gold-light) 0%,
-      var(--color-gold) 45%,
+      var(--color-gold) 40%,
+      #fff8e0 55%,
       var(--color-gold-dim) 100%
     );
+    text-shadow: 0 0 80px rgba(212, 175, 55, 0.15);
+  }
+
+  .section-header {
+    @apply flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 mb-4;
+  }
+
+  .quick-link-card {
+    @apply flex items-center gap-3 rounded-2xl border border-gold/15 px-5 py-4 transition-all duration-300;
+    background: linear-gradient(
+      135deg,
+      rgba(18, 26, 46, 0.85) 0%,
+      rgba(12, 18, 32, 0.95) 100%
+    );
+    box-shadow: 0 8px 32px -12px rgba(0, 0, 0, 0.5);
+  }
+
+  .quick-link-card:hover {
+    @apply border-gold/35 -translate-y-0.5;
+    box-shadow: 0 16px 40px -12px rgba(212, 175, 55, 0.2);
+  }
+
+  .quick-link-icon {
+    @apply flex h-11 w-11 items-center justify-center rounded-xl text-xl;
+    background: rgba(212, 175, 55, 0.12);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+  }
+
+  .potw-banner {
+    @apply relative overflow-hidden rounded-2xl border border-gold/25 p-6 sm:p-8 transition-all duration-300;
+    background: linear-gradient(
+      125deg,
+      rgba(212, 175, 55, 0.12) 0%,
+      rgba(18, 26, 46, 0.95) 40%,
+      rgba(12, 18, 32, 0.98) 100%
+    );
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.04) inset,
+      0 20px 50px -20px rgba(212, 175, 55, 0.15);
+  }
+
+  .potw-banner:hover {
+    @apply border-gold/45 -translate-y-0.5;
+    box-shadow: 0 24px 60px -20px rgba(212, 175, 55, 0.25);
+  }
+
+  .potw-label {
+    @apply text-[10px] uppercase tracking-[0.35em] text-gold/90 mb-2;
+  }
+
+  .title-badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold border;
+  }
+
+  .title-badge-gold {
+    @apply border-gold/35 text-gold-light bg-gold/10;
+  }
+
+  .title-badge-emerald {
+    @apply border-emerald-500/35 text-emerald-300 bg-emerald-500/10;
+  }
+
+  .title-badge-sky {
+    @apply border-sky-500/35 text-sky-300 bg-sky-500/10;
+  }
+
+  .title-badge-red {
+    @apply border-red-500/35 text-red-300 bg-red-500/10;
+  }
+
+  .title-badge-violet {
+    @apply border-violet-500/35 text-violet-300 bg-violet-500/10;
+  }
+
+  .title-showcase-card {
+    @apply block rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 transition-all duration-200 hover:border-gold/25 hover:bg-gold/[0.03];
+  }
+
+  .duel-card {
+    @apply rounded-2xl border border-gold/15 p-5 relative overflow-hidden;
+    background: linear-gradient(
+      160deg,
+      rgba(18, 26, 46, 0.95) 0%,
+      rgba(12, 18, 32, 0.98) 100%
+    );
+    box-shadow: 0 12px 40px -16px rgba(0, 0, 0, 0.6);
+  }
+
+  .duel-card-finished {
+    @apply border-white/10 opacity-90;
+  }
+
+  .duel-card-header {
+    @apply flex items-center justify-between mb-4 pb-3 border-b border-white/[0.06];
+  }
+
+  .duel-vs {
+    @apply font-display text-lg text-gold/80 tracking-widest;
+  }
+
+  .duel-timer {
+    @apply text-xs text-muted uppercase tracking-wider px-2 py-1 rounded-full border border-white/10 bg-white/5;
+  }
+
+  .duel-fighters {
+    @apply grid grid-cols-2 gap-3;
+  }
+
+  .duel-fighter {
+    @apply rounded-xl border border-white/[0.06] p-3 transition-all duration-200 hover:border-gold/25;
+    background: rgba(0, 0, 0, 0.2);
+  }
+
+  .duel-fighter-lead {
+    @apply border-emerald-500/30 bg-emerald-500/[0.06];
+    box-shadow: 0 0 24px -8px rgba(52, 211, 153, 0.25);
+  }
+
+  .duel-fighter-won {
+    @apply border-gold/40 bg-gold/[0.08];
+  }
+
+  .duel-winner-pill {
+    @apply inline-block mt-2 text-[10px] uppercase tracking-wider text-gold font-semibold;
   }
 
   .card {
@@ -94,10 +284,21 @@
       0 20px 50px -20px rgba(0, 0, 0, 0.6);
   }
 
+  .card-glow::before {
+    content: "";
+    @apply pointer-events-none absolute inset-0 rounded-2xl opacity-[0.4];
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.04) 0%,
+      transparent 40%,
+      transparent 100%
+    );
+  }
+
   .card-glow::after {
     content: "";
-    @apply pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-64 h-32 rounded-full opacity-40;
-    background: radial-gradient(circle, rgba(212, 175, 55, 0.25), transparent 70%);
+    @apply pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-72 h-36 rounded-full opacity-50;
+    background: radial-gradient(circle, rgba(212, 175, 55, 0.2), transparent 70%);
   }
 
   .label {
@@ -126,9 +327,10 @@
   }
 
   .nav-bar {
-    @apply sticky top-0 z-50 border-b border-gold/10;
-    background: rgba(6, 10, 18, 0.82);
-    backdrop-filter: blur(16px);
+    @apply sticky top-0 z-50 border-b border-gold/15;
+    background: rgba(6, 10, 18, 0.88);
+    backdrop-filter: blur(20px) saturate(1.2);
+    box-shadow: 0 4px 30px -10px rgba(0, 0, 0, 0.5);
   }
 
   .nav-link {
@@ -137,6 +339,10 @@
 
   .nav-link-active {
     @apply text-gold-light;
+  }
+
+  .nav-logo-mark {
+    box-shadow: 0 0 20px -6px rgba(212, 175, 55, 0.35);
   }
 
   .nav-link-active::after {

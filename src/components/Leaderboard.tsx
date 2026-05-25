@@ -5,6 +5,7 @@ import { BoardTransition } from "@/components/BoardTransition";
 import { LeaderboardPodium } from "@/components/LeaderboardPodium";
 import { LeaderboardTable } from "@/components/LeaderboardTable";
 import type { PlayerView } from "@/lib/players";
+import { assignTitles } from "@/lib/player-titles";
 import {
   LEADERBOARDS,
   sortPlayersForBoard,
@@ -40,6 +41,8 @@ export function Leaderboard() {
   const lastRefreshRef = useRef<Date | null>(null);
 
   const boardMeta = LEADERBOARDS.find((b) => b.id === activeBoard)!;
+
+  const titleMap = useMemo(() => assignTitles(players), [players]);
 
   const ranked = useMemo(
     () => sortPlayersForBoard(players, activeBoard),
@@ -217,7 +220,11 @@ export function Leaderboard() {
           <>
             {ranked.length >= 2 && (
               <div className="board-stagger-2">
-                <LeaderboardPodium players={ranked} boardId={activeBoard} />
+                <LeaderboardPodium
+                  players={ranked}
+                  boardId={activeBoard}
+                  titleMap={titleMap}
+                />
               </div>
             )}
             <div className="board-stagger-3">
@@ -225,6 +232,7 @@ export function Leaderboard() {
                 players={ranked.length >= 3 ? ranked.slice(3) : ranked}
                 board={boardMeta}
                 startRank={ranked.length >= 3 ? 4 : 1}
+                titleMap={titleMap}
               />
             </div>
             {activeBoard === "kda" && ranked.every((p) => p.avgKda == null) && (

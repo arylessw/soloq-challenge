@@ -8,6 +8,7 @@ import { playerListName, playerListSubtitle } from "@/lib/player-display";
 import { roleIconUrl } from "@/lib/role-stats";
 import { formatRelativeTimeFromIso } from "@/lib/format-time";
 import type { PlayerView } from "@/lib/players";
+import type { PlayerTitle } from "@/lib/player-titles";
 import {
   formatMetric,
   metricSubtext,
@@ -19,9 +20,15 @@ type Props = {
   players: PlayerView[];
   board: LeaderboardMeta;
   startRank?: number;
+  titleMap?: Map<string, PlayerTitle[]>;
 };
 
-export function LeaderboardTable({ players, board, startRank = 1 }: Props) {
+export function LeaderboardTable({
+  players,
+  board,
+  startRank = 1,
+  titleMap,
+}: Props) {
   if (players.length === 0) return null;
 
   return (
@@ -109,7 +116,7 @@ export function LeaderboardTable({ players, board, startRank = 1 }: Props) {
                       <span className="text-[11px] text-muted font-normal">
                         {playerListSubtitle(p)}
                       </span>
-                      <PlayerMeta player={p} />
+                      <PlayerMeta player={p} titles={titleMap?.get(p.id)} />
                     </span>
                   </Link>
                 </td>

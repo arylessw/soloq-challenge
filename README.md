@@ -28,7 +28,8 @@ Guide détaillé : **[DEPLOY.md](./DEPLOY.md)**
 
 | Route | Description |
 |-------|-------------|
-| `/` | Classements (LP, rang, WR, KDA, main champ, rôle) + auto-refresh 3 min |
+| `/` | Classements (LP, rang, WR, KDA, main champ, rôle) + titres auto |
+| `/duels` | Duels 1v1 entre joueurs (LP ou victoires sur X jours) |
 | `/inscription` | Inscription joueur au défi (Riot ID) |
 | `/compte/inscription` | Créer un compte site (e-mail, mot de passe) |
 | `/compte/connexion` | Se connecter |

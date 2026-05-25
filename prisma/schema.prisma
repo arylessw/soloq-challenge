@@ -53,9 +53,32 @@ model Player {
   user            User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   lpSnapshots LpSnapshot[]
+  duelsAsA     Duel[]      @relation("DuelPlayerA")
+  duelsAsB     Duel[]      @relation("DuelPlayerB")
 
   @@unique([gameName, tagLine])
   @@index([userId])
+}
+
+model Duel {
+  id          String   @id @default(cuid())
+  playerAId   String
+  playerBId   String
+  metric      String   @default("lp")
+  startLpNetA Int
+  startLpNetB Int
+  startWinsA  Int      @default(0)
+  startWinsB  Int      @default(0)
+  startsAt    DateTime @default(now())
+  endsAt      DateTime
+  status      String   @default("active")
+  winnerId    String?
+  createdAt   DateTime @default(now())
+
+  playerA Player @relation("DuelPlayerA", fields: [playerAId], references: [id], onDelete: Cascade)
+  playerB Player @relation("DuelPlayerB", fields: [playerBId], references: [id], onDelete: Cascade)
+
+  @@index([status, endsAt])
 }
 
 model LpSnapshot {

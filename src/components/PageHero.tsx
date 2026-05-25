@@ -7,6 +7,7 @@ type Props = {
 export function PageHero({ eyebrow = "EUW · Saison ranked", title, description }: Props) {
   return (
     <header className="page-hero pt-10">
+      <div className="page-hero-orb" aria-hidden />
       {eyebrow && <p className="page-eyebrow">{eyebrow}</p>}
       <h1 className="page-title">{title}</h1>
       {description && (

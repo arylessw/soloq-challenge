@@ -8,8 +8,11 @@ import { PlayerMatchHistory } from "@/components/PlayerMatchHistory";
 import { PlayerMeta } from "@/components/PlayerMeta";
 import { RankEmblem } from "@/components/RankEmblem";
 import { ShareProfileButton } from "@/components/ShareProfileButton";
+import { TitleBadgeList } from "@/components/TitleBadge";
 import { getLpHistory } from "@/lib/lp-snapshots";
-import { getPlayerById } from "@/lib/players";
+import { assignTitles } from "@/lib/player-titles";
+import { getPlayerById, listPlayers } from "@/lib/players";
+import { playerListName } from "@/lib/player-display";
 import { getSiteUrl } from "@/lib/site-url";
 
 type Props = { params: Promise<{ id: string }> };
@@ -44,12 +47,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function PlayerGamesPage({ params }: Props) {
   const { id } = await params;
-  const [player, lpHistory] = await Promise.all([
+  const [player, lpHistory, allPlayers] = await Promise.all([
     getPlayerById(id),
     getLpHistory(id),
+    listPlayers(),
   ]);
 
   if (!player) notFound();
+
+  const titles = assignTitles(allPlayers).get(id) ?? [];
 
   return (
     <div>
@@ -67,9 +73,14 @@ export default async function PlayerGamesPage({ params }: Props) {
           )}
           <div className="flex-1 min-w-0">
             <h1 className="font-display text-3xl text-gold-light mb-1">
-              {player.gameName}
+              {playerListName(player)}
             </h1>
             <p className="text-muted text-sm mb-2">#{player.tagLine}</p>
+            {titles.length > 0 && (
+              <div className="mb-2">
+                <TitleBadgeList titles={titles} max={4} />
+              </div>
+            )}
             <PlayerMeta player={player} />
             <div className="mt-4">
               <ShareProfileButton player={player} />

@@ -3,6 +3,7 @@ import { Cinzel, DM_Sans } from "next/font/google";
 import { Nav } from "@/components/Nav";
 import { PwaRegister } from "@/components/PwaRegister";
 import { RiotApiBanner } from "@/components/RiotApiBanner";
+import { SiteAdLayout } from "@/components/SiteAdLayout";
 import { SiteFooter } from "@/components/SiteFooter";
 import { siteMetadata } from "@/lib/site-metadata";
 import "./globals.css";
@@ -31,7 +32,9 @@ export default function RootLayout({
       <body>
         <RiotApiBanner />
         <Nav />
-        <main className="page-shell">{children}</main>
+        <SiteAdLayout>
+          <main className="page-shell">{children}</main>
+        </SiteAdLayout>
         <SiteFooter />
         <PwaRegister />
       </body>
