@@ -3,9 +3,16 @@ import type { PlayerView } from "@/lib/players";
 export type PlayerTitle = {
   id: string;
   label: string;
+  description: string;
   emoji: string;
   tone: "gold" | "emerald" | "sky" | "red" | "violet";
 };
+
+function title(
+  t: Omit<PlayerTitle, "description"> & { description: string }
+): PlayerTitle {
+  return t;
+}
 
 const MIN_GAMES_KDA = 5;
 const MIN_GAMES_WR = 8;
@@ -46,7 +53,17 @@ export function assignTitles(players: PlayerView[]): Map<string, PlayerTitle[]> 
 
   const roiLp = topBy(players, (p) => p.lpNet, true);
   if (roiLp) {
-    push(roiLp, { id: "roi-lp", label: "Roi du grind", emoji: "👑", tone: "gold" });
+    push(
+      roiLp,
+      title({
+        id: "roi-lp",
+        label: "Roi du grind",
+        emoji: "👑",
+        tone: "gold",
+        description:
+          "Plus grande progression LP depuis le rang de départ du défi.",
+      })
+    );
   }
 
   const carry = topBy(
@@ -55,7 +72,16 @@ export function assignTitles(players: PlayerView[]): Map<string, PlayerTitle[]> 
     true
   );
   if (carry) {
-    push(carry, { id: "carry", label: "Carry", emoji: "⚔️", tone: "emerald" });
+    push(
+      carry,
+      title({
+        id: "carry",
+        label: "Carry",
+        emoji: "⚔️",
+        tone: "emerald",
+        description: `Meilleur KDA moyen (min. ${MIN_GAMES_KDA} parties ranked).`,
+      })
+    );
   }
 
   const intable = topBy(
@@ -67,12 +93,16 @@ export function assignTitles(players: PlayerView[]): Map<string, PlayerTitle[]> 
     false
   );
   if (intable) {
-    push(intable, {
-      id: "intable",
-      label: "Intenable",
-      emoji: "🎭",
-      tone: "red",
-    });
+    push(
+      intable,
+      title({
+        id: "intable",
+        label: "Intenable",
+        emoji: "🎭",
+        tone: "red",
+        description: `Plus bas winrate du groupe (min. ${MIN_GAMES_WR} parties).`,
+      })
+    );
   }
 
   const sniper = topBy(
@@ -84,12 +114,16 @@ export function assignTitles(players: PlayerView[]): Map<string, PlayerTitle[]> 
     true
   );
   if (sniper && sniper !== intable) {
-    push(sniper, {
-      id: "sniper",
-      label: "Sniper",
-      emoji: "🎯",
-      tone: "sky",
-    });
+    push(
+      sniper,
+      title({
+        id: "sniper",
+        label: "Sniper",
+        emoji: "🎯",
+        tone: "sky",
+        description: `Meilleur winrate du groupe (min. ${MIN_GAMES_WR} parties).`,
+      })
+    );
   }
 
   const marathon = topBy(
@@ -98,62 +132,90 @@ export function assignTitles(players: PlayerView[]): Map<string, PlayerTitle[]> 
     true
   );
   if (marathon) {
-    push(marathon, {
-      id: "marathon",
-      label: "Marathonien",
-      emoji: "🏃",
-      tone: "violet",
-    });
+    push(
+      marathon,
+      title({
+        id: "marathon",
+        label: "Marathonien",
+        emoji: "🏃",
+        tone: "violet",
+        description: "Le plus de parties ranked jouées cette saison.",
+      })
+    );
   }
 
   for (const p of players) {
     if (p.streakType === "WIN" && p.streakCount >= 4) {
-      push(p.id, {
-        id: "on-fire",
-        label: `En feu ×${p.streakCount}`,
-        emoji: "🔥",
-        tone: "emerald",
-      });
+      push(
+        p.id,
+        title({
+          id: "on-fire",
+          label: `En feu ×${p.streakCount}`,
+          emoji: "🔥",
+          tone: "emerald",
+          description: `${p.streakCount} victoires d'affilée sur les dernières parties.`,
+        })
+      );
     }
     if (p.streakType === "LOSS" && p.streakCount >= 4) {
-      push(p.id, {
-        id: "tilt",
-        label: `Tilt ×${p.streakCount}`,
-        emoji: "💀",
-        tone: "red",
-      });
+      push(
+        p.id,
+        title({
+          id: "tilt",
+          label: `Tilt ×${p.streakCount}`,
+          emoji: "💀",
+          tone: "red",
+          description: `${p.streakCount} défaites d'affilée sur les dernières parties.`,
+        })
+      );
     }
     if (p.mainChampion && p.mainChampion.games >= 8 && p.mainChampion.winrate >= 58) {
-      push(p.id, {
-        id: "otp",
-        label: `OTP ${p.mainChampion.championName}`,
-        emoji: "🎮",
-        tone: "gold",
-      });
+      push(
+        p.id,
+        title({
+          id: "otp",
+          label: `OTP ${p.mainChampion.championName}`,
+          emoji: "🎮",
+          tone: "gold",
+          description: `Main ${p.mainChampion.championName} : ${p.mainChampion.winrate}% WR sur ${p.mainChampion.games} games.`,
+        })
+      );
     }
     if (p.lpNet != null && p.lpNet >= 80) {
-      push(p.id, {
-        id: "climber",
-        label: "Grimpeur",
-        emoji: "📈",
-        tone: "emerald",
-      });
+      push(
+        p.id,
+        title({
+          id: "climber",
+          label: "Grimpeur",
+          emoji: "📈",
+          tone: "emerald",
+          description: `+${p.lpNet} LP de progression depuis l'inscription au défi.`,
+        })
+      );
     }
     if (p.lpNet != null && p.lpNet <= -60) {
-      push(p.id, {
-        id: "diver",
-        label: "En plongée",
-        emoji: "📉",
-        tone: "red",
-      });
+      push(
+        p.id,
+        title({
+          id: "diver",
+          label: "En plongée",
+          emoji: "📉",
+          tone: "red",
+          description: `${p.lpNet} LP de progression (en baisse depuis le départ).`,
+        })
+      );
     }
     if (p.avgKda != null && p.avgKda >= 4.5 && (p.kdaGames ?? 0) >= 3) {
-      push(p.id, {
-        id: "god",
-        label: "Monstre KDA",
-        emoji: "✨",
-        tone: "violet",
-      });
+      push(
+        p.id,
+        title({
+          id: "god",
+          label: "Monstre KDA",
+          emoji: "✨",
+          tone: "violet",
+          description: `KDA moyen de ${p.avgKda?.toFixed(2)} sur les parties du défi.`,
+        })
+      );
     }
   }
 

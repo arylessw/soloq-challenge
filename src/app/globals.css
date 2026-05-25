@@ -184,8 +184,29 @@
     @apply text-[10px] uppercase tracking-[0.35em] text-gold/90 mb-2;
   }
 
+  .title-badge-wrap {
+    @apply relative inline-flex max-w-full;
+  }
+
+  .title-badge-wrap:hover .title-tooltip,
+  .title-badge-wrap:focus-visible .title-tooltip {
+    @apply opacity-100 visible translate-y-0;
+  }
+
   .title-badge {
-    @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold border;
+    @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold border cursor-help;
+  }
+
+  .title-tooltip {
+    @apply absolute bottom-[calc(100%+6px)] left-1/2 z-50 w-max max-w-[220px] -translate-x-1/2 translate-y-1 px-2.5 py-1.5 text-[11px] font-normal leading-snug text-white/95 rounded-lg border border-gold/25 opacity-0 invisible pointer-events-none transition-all duration-150;
+    background: rgba(12, 18, 32, 0.98);
+    box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.7);
+  }
+
+  .title-tooltip::after {
+    content: "";
+    @apply absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent;
+    border-top-color: rgba(12, 18, 32, 0.98);
   }
 
   .title-badge-gold {
@@ -418,7 +439,7 @@
   }
 
   .table-shell {
-    @apply rounded-2xl border border-gold/12 overflow-hidden;
+    @apply rounded-2xl border border-gold/12 overflow-x-auto overflow-y-visible;
     background: linear-gradient(
       165deg,
       rgba(18, 26, 46, 0.95) 0%,
@@ -519,6 +540,10 @@
     .board-stagger-2,
     .board-stagger-3 {
       animation: none;
+    }
+
+    .title-tooltip {
+      transition: none;
     }
   }
 }

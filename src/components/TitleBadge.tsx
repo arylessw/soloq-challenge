@@ -10,12 +10,14 @@ const toneClass: Record<PlayerTitle["tone"], string> = {
 
 export function TitleBadge({ title }: { title: PlayerTitle }) {
   return (
-    <span
-      className={`title-badge ${toneClass[title.tone]}`}
-      title={title.label}
-    >
-      <span aria-hidden>{title.emoji}</span>
-      {title.label}
+    <span className="title-badge-wrap">
+      <span className={`title-badge ${toneClass[title.tone]}`}>
+        <span aria-hidden>{title.emoji}</span>
+        {title.label}
+      </span>
+      <span className="title-tooltip" role="tooltip">
+        {title.description}
+      </span>
     </span>
   );
 }
