@@ -7,6 +7,9 @@ type Props = {
   className?: string;
 };
 
+const frameClass =
+  "relative inline-flex shrink-0 overflow-hidden rounded-full border border-gold/25 bg-surface";
+
 export function UserAvatar({
   displayName,
   avatarUrl,
@@ -17,15 +20,20 @@ export function UserAvatar({
 
   if (avatarUrl) {
     return (
-      <Image
-        key={avatarUrl}
-        src={avatarUrl}
-        alt={displayName}
-        width={size}
-        height={size}
-        className={`rounded-full object-cover border border-gold/25 shrink-0 ${className}`}
-        unoptimized
-      />
+      <span
+        className={`${frameClass} ${className}`}
+        style={{ width: size, height: size }}
+      >
+        <Image
+          key={avatarUrl}
+          src={avatarUrl}
+          alt={displayName}
+          fill
+          className="object-cover object-center"
+          sizes={`${size}px`}
+          unoptimized
+        />
+      </span>
     );
   }
 
