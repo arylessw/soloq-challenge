@@ -106,7 +106,11 @@ function toView(p: PlayerWithOwner): PlayerView {
     ? {
         id: p.user.id,
         displayName: p.user.displayName,
-        avatarUrl: userAvatarUrl(p.user.id, !!p.user.avatarMime),
+        avatarUrl: userAvatarUrl(
+          p.user.id,
+          !!p.user.avatarMime,
+          p.user.updatedAt
+        ),
       }
     : null;
 

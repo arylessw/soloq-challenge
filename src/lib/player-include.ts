@@ -6,6 +6,7 @@ export const playerWithOwnerInclude = {
       id: true,
       displayName: true,
       avatarMime: true,
+      updatedAt: true,
     },
   },
 } satisfies Prisma.PlayerInclude;

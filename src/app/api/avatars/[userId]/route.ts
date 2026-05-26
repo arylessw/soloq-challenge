@@ -18,7 +18,7 @@ export async function GET(_request: Request, { params }: Props) {
   return new NextResponse(user.avatarData, {
     headers: {
       "Content-Type": user.avatarMime,
-      "Cache-Control": "public, max-age=86400, stale-while-revalidate=604800",
+      "Cache-Control": "public, max-age=31536000, immutable",
     },
   });
 }

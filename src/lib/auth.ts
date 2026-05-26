@@ -8,8 +8,20 @@ export type AuthUser = {
   avatarUrl: string | null;
 };
 
-export function userAvatarUrl(userId: string, hasAvatar: boolean): string | null {
-  return hasAvatar ? `/api/avatars/${userId}` : null;
+/** Version dans l’URL pour invalider le cache navigateur après changement de photo. */
+export function userAvatarUrl(
+  userId: string,
+  hasAvatar: boolean,
+  updatedAt?: Date | string | null
+): string | null {
+  if (!hasAvatar) return null;
+  const v =
+    updatedAt instanceof Date
+      ? updatedAt.getTime()
+      : updatedAt
+        ? new Date(updatedAt).getTime()
+        : 0;
+  return `/api/avatars/${userId}?v=${v}`;
 }
 
 export async function getCurrentUser(): Promise<AuthUser | null> {
@@ -23,6 +35,7 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
       email: true,
       displayName: true,
       avatarMime: true,
+      updatedAt: true,
     },
   });
 
@@ -32,7 +45,7 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
     id: user.id,
     email: user.email,
     displayName: user.displayName,
-    avatarUrl: userAvatarUrl(user.id, !!user.avatarMime),
+    avatarUrl: userAvatarUrl(user.id, !!user.avatarMime, user.updatedAt),
   };
 }
 

@@ -37,7 +37,13 @@ export async function PATCH(request: Request) {
   const updated = await prisma.user.update({
     where: { id: user.id },
     data: { displayName },
-    select: { id: true, email: true, displayName: true, avatarMime: true },
+    select: {
+      id: true,
+      email: true,
+      displayName: true,
+      avatarMime: true,
+      updatedAt: true,
+    },
   });
 
   return NextResponse.json({
@@ -45,7 +51,11 @@ export async function PATCH(request: Request) {
       id: updated.id,
       email: updated.email,
       displayName: updated.displayName,
-      avatarUrl: userAvatarUrl(updated.id, !!updated.avatarMime),
+      avatarUrl: userAvatarUrl(
+        updated.id,
+        !!updated.avatarMime,
+        updated.updatedAt
+      ),
     },
   });
 }

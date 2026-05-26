@@ -18,6 +18,7 @@ export function UserAvatar({
   if (avatarUrl) {
     return (
       <Image
+        key={avatarUrl}
         src={avatarUrl}
         alt={displayName}
         width={size}

@@ -30,7 +30,7 @@ export async function POST(request: Request) {
         id: user.id,
         email: user.email,
         displayName: user.displayName,
-        avatarUrl: userAvatarUrl(user.id, !!user.avatarMime),
+        avatarUrl: userAvatarUrl(user.id, !!user.avatarMime, user.updatedAt),
       },
     });
   } catch (e) {

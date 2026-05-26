@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, userAvatarUrl } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
 const MAX_BYTES = 512 * 1024;
@@ -32,13 +32,14 @@ export async function POST(request: Request) {
     );
   }
 
-  await prisma.user.update({
+  const updated = await prisma.user.update({
     where: { id: user.id },
     data: { avatarMime: file.type, avatarData: buffer },
+    select: { id: true, avatarMime: true, updatedAt: true },
   });
 
   return NextResponse.json({
-    avatarUrl: `/api/avatars/${user.id}`,
+    avatarUrl: userAvatarUrl(updated.id, !!updated.avatarMime, updated.updatedAt),
   });
 }
 
