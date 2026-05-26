@@ -8,12 +8,8 @@ import { playerListName, playerListSubtitle } from "@/lib/player-display";
 import { roleIconUrl } from "@/lib/role-stats";
 import type { PlayerView } from "@/lib/players";
 import type { PlayerTitle } from "@/lib/player-titles";
-import {
-  formatMetric,
-  metricSubtext,
-  metricTone,
-  type LeaderboardId,
-} from "@/lib/leaderboards";
+import { AnimatedMetric } from "@/components/AnimatedMetric";
+import { metricSubtext, metricTone, type LeaderboardId } from "@/lib/leaderboards";
 import { tierCardClass } from "@/lib/tier-styles";
 
 const PODIUM_ORDER = [1, 0, 2] as const;
@@ -95,16 +91,8 @@ export function LeaderboardPodium({ players, boardId, titleMap }: Props) {
           </p>
           <p className="text-[11px] text-muted truncate">{playerListSubtitle(p)}</p>
           <PlayerMeta player={p} titles={titleMap?.get(p.id)} />
-          <p
-            className={`font-display text-2xl mt-2 ${
-              tone === "positive"
-                ? "text-emerald-400"
-                : tone === "negative"
-                  ? "text-red-400"
-                  : "text-gold-light"
-            }`}
-          >
-            {formatMetric(p, boardId)}
+          <p className="font-display text-2xl mt-2">
+            <AnimatedMetric player={p} boardId={boardId} tone={tone} />
           </p>
           {metricSubtext(p, boardId) && (
             <p className="text-xs text-muted mt-1">{metricSubtext(p, boardId)}</p>

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BoardTransition } from "@/components/BoardTransition";
+import { LeaderboardSkeleton } from "@/components/Skeleton";
 import { LeaderboardPodium } from "@/components/LeaderboardPodium";
 import { LeaderboardTable } from "@/components/LeaderboardTable";
 import type { PlayerView } from "@/lib/players";
@@ -140,24 +141,19 @@ export function Leaderboard() {
   }, [lastRefresh]);
 
   if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center py-24 gap-4">
-        <div className="h-10 w-10 rounded-full border-2 border-gold/30 border-t-gold animate-spin" />
-        <p className="text-sm text-muted">Chargement du classement…</p>
-      </div>
-    );
+    return <LeaderboardSkeleton />;
   }
 
   return (
     <div>
       <div className="leaderboard-panel flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-wrap gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+        <div className="leaderboard-tabs flex flex-wrap gap-2 overflow-x-auto pb-1 -mx-1 px-1">
           {LEADERBOARDS.map((b) => (
             <button
               key={b.id}
               type="button"
               onClick={() => switchBoard(b.id)}
-              className={`leaderboard-tab ${activeBoard === b.id ? "leaderboard-tab-active" : ""}`}
+              className={`leaderboard-tab relative ${activeBoard === b.id ? "leaderboard-tab-active" : ""}`}
             >
               {b.shortLabel}
             </button>

@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
 import { MatchDetailModal } from "@/components/MatchDetailModal";
+import { MatchListSkeleton } from "@/components/Skeleton";
 import type { MatchView } from "@/lib/matches";
 
 export function PlayerMatchHistory({ playerId }: { playerId: string }) {
@@ -43,9 +44,12 @@ export function PlayerMatchHistory({ playerId }: { playerId: string }) {
 
   if (loading) {
     return (
-      <p className="text-center text-muted py-12">
-        Chargement des 20 dernières parties ranked solo… (peut prendre 15–25 s)
-      </p>
+      <div>
+        <p className="text-xs text-muted mb-4">
+          Chargement des parties ranked solo… (15–25 s)
+        </p>
+        <MatchListSkeleton />
+      </div>
     );
   }
 
@@ -73,7 +77,7 @@ export function PlayerMatchHistory({ playerId }: { playerId: string }) {
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <p className="text-xs text-muted">
-          Clique sur une partie pour voir alliés, ennemis, dégâts et or.
+          Clique sur une partie pour les détails (alliés, dégâts, or).
         </p>
         <button
           type="button"
@@ -90,50 +94,61 @@ export function PlayerMatchHistory({ playerId }: { playerId: string }) {
           Aucune partie ranked solo trouvée depuis l&apos;inscription.
         </div>
       ) : (
-        <ul className="space-y-3">
+        <ul className="space-y-2">
           {matches.map((m) => (
             <li key={m.matchId}>
               <button
                 type="button"
                 onClick={() => setSelectedMatchId(m.matchId)}
-                className={`card w-full flex flex-wrap items-center gap-4 border-l-4 text-left transition hover:border-gold/40 hover:bg-white/5 cursor-pointer ${
-                  m.win ? "border-l-emerald-500/80" : "border-l-red-500/80"
-                }`}
+                className={`match-row-opgg w-full text-left ${m.win ? "match-row-opgg--win" : "match-row-opgg--loss"}`}
               >
-                <Image
-                  src={m.championIconUrl}
-                  alt={m.championName}
-                  width={48}
-                  height={48}
-                  className="rounded-lg bg-black/40"
-                  unoptimized
-                />
-                <div className="min-w-[120px] flex-1">
-                  <p className="font-medium">{m.championName}</p>
-                  <p className="text-xs text-muted">
+                <div className="match-row-opgg__accent" aria-hidden />
+                <div className="match-row-opgg__champ">
+                  <Image
+                    src={m.championIconUrl}
+                    alt={m.championName}
+                    width={52}
+                    height={52}
+                    className="rounded-lg"
+                    unoptimized
+                  />
+                </div>
+                <div className="match-row-opgg__info min-w-0 flex-1">
+                  <p className="font-semibold text-white/95 truncate">
+                    {m.championName}
+                  </p>
+                  <p className="text-xs text-muted mt-0.5">
                     {m.playedAtLabel} · {m.durationLabel}
                   </p>
+                  <p className="text-[10px] uppercase tracking-wider text-muted/80 mt-1">
+                    Ranked Solo
+                  </p>
                 </div>
-                <div className="text-center">
-                  <p
-                    className={`text-sm font-semibold uppercase tracking-wide ${
+                <div className="match-row-opgg__result text-center shrink-0">
+                  <span
+                    className={`text-xs font-bold uppercase tracking-wide ${
                       m.win ? "text-emerald-400" : "text-red-400"
                     }`}
                   >
                     {m.win ? "Victoire" : "Défaite"}
-                  </p>
-                  <p className="text-xs text-muted mt-0.5">Ranked Solo</p>
+                  </span>
                 </div>
-                <div className="text-right">
-                  <p className="font-display text-lg">
-                    {m.kills} / {m.deaths} / {m.assists}
+                <div className="match-row-opgg__kda text-right shrink-0">
+                  <p className="font-display text-xl tabular-nums leading-none">
+                    <span className="text-white/90">{m.kills}</span>
+                    <span className="text-muted mx-0.5">/</span>
+                    <span className={m.deaths >= 6 ? "text-red-400" : "text-white/70"}>
+                      {m.deaths}
+                    </span>
+                    <span className="text-muted mx-0.5">/</span>
+                    <span className="text-white/90">{m.assists}</span>
                   </p>
-                  <p className="text-xs text-muted">
-                    KDA {m.kda} · {m.cs} CS
+                  <p className="text-[11px] text-muted mt-1">
+                    {m.kda === "Perfect" ? "Perfect" : `${m.kda} KDA`} · {m.cs} CS
                   </p>
                 </div>
-                <span className="text-xs text-gold-light/70 w-full sm:w-auto sm:ml-auto">
-                  Voir détails →
+                <span className="match-row-opgg__arrow text-muted hidden sm:block">
+                  →
                 </span>
               </button>
             </li>

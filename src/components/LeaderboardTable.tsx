@@ -9,6 +9,7 @@ import { roleIconUrl } from "@/lib/role-stats";
 import { formatRelativeTimeFromIso } from "@/lib/format-time";
 import type { PlayerView } from "@/lib/players";
 import type { PlayerTitle } from "@/lib/player-titles";
+import { AnimatedMetric } from "@/components/AnimatedMetric";
 import {
   formatMetric,
   metricSubtext,
@@ -146,18 +147,16 @@ export function LeaderboardTable({
                   <div>
                     {board.id === "rank" && p.currentTier && p.currentRank ? (
                       <RankWithEmblem tier={p.currentTier} label={p.currentRank} size={24} />
-                    ) : (
-                      <span
-                        className={
-                          tone === "positive"
-                            ? "text-emerald-400 font-semibold"
-                            : tone === "negative"
-                              ? "text-red-400 font-semibold"
-                              : "text-gold-light font-semibold"
-                        }
-                      >
+                    ) : board.id === "rank" ? (
+                      <span className="text-gold-light font-semibold">
                         {formatMetric(p, board.id)}
                       </span>
+                    ) : (
+                      <AnimatedMetric
+                        player={p}
+                        boardId={board.id}
+                        tone={tone}
+                      />
                     )}
                     {metricSubtext(p, board.id) &&
                       board.id !== "lp" &&
@@ -191,7 +190,17 @@ export function LeaderboardTable({
                                 : "text-muted"
                           }
                         >
-                          {p.winrate}%
+                          <AnimatedMetric
+                            player={p}
+                            boardId="winrate"
+                            tone={
+                              p.winrate >= 55
+                                ? "positive"
+                                : p.winrate < 45
+                                  ? "negative"
+                                  : "neutral"
+                            }
+                          />
                         </span>
                       ) : (
                         "—"

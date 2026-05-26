@@ -4,6 +4,7 @@ import { championIconUrl } from "@/lib/champion-stats";
 import { roleIconUrl } from "@/lib/role-stats";
 import { getLpHistory, type LpHistoryPoint } from "@/lib/lp-snapshots";
 import { getPlayerById } from "@/lib/players";
+import { getSiteUrl } from "@/lib/site-url";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -97,6 +98,7 @@ export default async function PlayerOgImage({ params }: Props) {
   const topChampion = player.mainChampion ?? player.championStats[0] ?? null;
   const topRole = player.mainRole ?? player.roleStats[0] ?? null;
   const showLpSparkline = !topChampion && !topRole && lpHistory.length >= 2;
+  const siteUrl = getSiteUrl();
 
   return new ImageResponse(
     (
@@ -107,9 +109,10 @@ export default async function PlayerOgImage({ params }: Props) {
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          padding: 56,
+          padding: "48px 56px 40px",
           background:
-            "linear-gradient(145deg, #060a12 0%, #121a2e 50%, #0a0e17 100%)",
+            "linear-gradient(160deg, #060a12 0%, #121a2e 42%, #0a0e17 100%)",
+          border: "2px solid rgba(212,175,55,0.25)",
           color: "#f0e6b8",
           fontFamily: "system-ui, sans-serif",
         }}
@@ -137,9 +140,9 @@ export default async function PlayerOgImage({ params }: Props) {
             </div>
             <div
               style={{
-                fontSize: 52,
+                fontSize: 58,
                 fontWeight: 700,
-                lineHeight: 1.1,
+                lineHeight: 1.05,
                 marginBottom: 8,
               }}
             >
@@ -248,7 +251,7 @@ export default async function PlayerOgImage({ params }: Props) {
             <div style={{ fontSize: 18, color: "#8b9cb8", marginBottom: 8 }}>
               Progression défi
             </div>
-            <div style={{ fontSize: 48, fontWeight: 700, color: lpColor }}>
+            <div style={{ fontSize: 64, fontWeight: 800, color: lpColor, lineHeight: 1 }}>
               {player.progressLabel ?? "—"}
             </div>
           </div>
@@ -258,9 +261,9 @@ export default async function PlayerOgImage({ params }: Props) {
           style={{
             display: "flex",
             gap: 24,
-            marginTop: 32,
-            paddingTop: 24,
-            borderTop: "1px solid rgba(255,255,255,0.12)",
+            marginTop: 24,
+            paddingTop: 20,
+            borderTop: "1px solid rgba(255,255,255,0.1)",
           }}
         >
           {wlLine ? (
@@ -277,6 +280,44 @@ export default async function PlayerOgImage({ params }: Props) {
           {player.presence.status === "in_game" ? (
             <div style={{ fontSize: 20, color: "#34d399" }}>En partie</div>
           ) : null}
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginTop: 20,
+            paddingTop: 16,
+            borderTop: "1px solid rgba(212,175,55,0.2)",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <div
+              style={{
+                display: "flex",
+                width: 44,
+                height: 44,
+                borderRadius: 10,
+                border: "2px solid #d4af37",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 16,
+                fontWeight: 800,
+                color: "#d4af37",
+                background: "rgba(212,175,55,0.12)",
+              }}
+            >
+              SQ
+            </div>
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <span style={{ fontSize: 18, fontWeight: 700, color: "#f0e6b8" }}>
+                SoloQ Challenge
+              </span>
+              <span style={{ fontSize: 13, color: "#8b9cb8" }}>EUW · Défi entre amis</span>
+            </div>
+          </div>
+          <span style={{ fontSize: 15, color: "#8b9cb8" }}>{siteUrl}</span>
         </div>
       </div>
     ),

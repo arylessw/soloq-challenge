@@ -5,15 +5,11 @@ import { ChampionStatsPanel } from "@/components/ChampionStatsPanel";
 import { RoleStatsPanel } from "@/components/RoleStatsPanel";
 import { LpChart } from "@/components/LpChart";
 import { PlayerMatchHistory } from "@/components/PlayerMatchHistory";
-import { PlayerMeta } from "@/components/PlayerMeta";
-import { RankEmblem } from "@/components/RankEmblem";
-import { ShareProfileButton } from "@/components/ShareProfileButton";
+import { ProfileHeader } from "@/components/ProfileHeader";
 import { TierProfileAccent } from "@/components/TierProfileAccent";
-import { TitleBadgeList } from "@/components/TitleBadge";
 import { getLpHistory } from "@/lib/lp-snapshots";
 import { assignTitles } from "@/lib/player-titles";
 import { getPlayerById, listPlayers } from "@/lib/players";
-import { playerListName } from "@/lib/player-display";
 import { getSiteUrl } from "@/lib/site-url";
 
 type Props = { params: Promise<{ id: string }> };
@@ -68,69 +64,7 @@ export default async function PlayerGamesPage({ params }: Props) {
         <span aria-hidden>←</span> Retour aux profils
       </Link>
 
-      <header className="card-glow mb-8 relative z-[1]">
-        <div className="flex flex-wrap items-start gap-5">
-          {player.currentTier && (
-            <RankEmblem tier={player.currentTier} size={64} className="shrink-0" />
-          )}
-          <div className="flex-1 min-w-0">
-            <h1 className="font-display text-3xl text-gold-light mb-1">
-              {playerListName(player)}
-            </h1>
-            <p className="text-muted text-sm mb-2">#{player.tagLine}</p>
-            {titles.length > 0 && (
-              <div className="mb-2">
-                <TitleBadgeList titles={titles} max={4} />
-              </div>
-            )}
-            <PlayerMeta player={player} />
-            <div className="mt-4">
-              <ShareProfileButton player={player} />
-            </div>
-            <div className="flex flex-wrap gap-6 text-sm mt-6">
-              <div>
-                <p className="text-muted text-[10px] uppercase tracking-wider mb-1">
-                  Départ
-                </p>
-                <p className="text-white/90">{player.startRank}</p>
-              </div>
-              <div>
-                <p className="text-muted text-[10px] uppercase tracking-wider mb-1">
-                  Actuel
-                </p>
-                <p className="text-white/90">{player.currentRank ?? "—"}</p>
-              </div>
-              {player.lpNet != null && player.lpNet !== 0 && (
-                <div>
-                  <p className="text-muted text-[10px] uppercase tracking-wider mb-1">
-                    Progression
-                  </p>
-                  <p
-                    className={
-                      player.lpNet > 0
-                        ? "text-emerald-400 font-semibold"
-                        : "text-red-400 font-semibold"
-                    }
-                  >
-                    {player.progressLabel}
-                  </p>
-                </div>
-              )}
-              {player.wins != null && player.losses != null && (
-                <div>
-                  <p className="text-muted text-[10px] uppercase tracking-wider mb-1">
-                    W/L saison
-                  </p>
-                  <p className="tabular-nums text-white/90">
-                    {player.wins}V / {player.losses}D
-                    {player.winrate != null ? ` (${player.winrate}%)` : ""}
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
+      <ProfileHeader player={player} titles={titles} />
 
       <div className="grid gap-6 lg:grid-cols-2 mb-6">
         <LpChart points={lpHistory} />

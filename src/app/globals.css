@@ -383,18 +383,131 @@
 
   .leaderboard-tab {
     @apply rounded-xl border border-white/8 px-4 py-2.5 text-sm font-medium
-      text-muted transition-all duration-200
+      text-muted transition-all duration-300 ease-out
       hover:border-gold/25 hover:text-white hover:bg-white/5;
   }
 
   .leaderboard-tab-active {
-    @apply border-gold/40 text-gold-light;
+    @apply border-gold/40 text-gold-light scale-[1.02];
     background: linear-gradient(
       180deg,
       rgba(212, 175, 55, 0.18) 0%,
       rgba(212, 175, 55, 0.06) 100%
     );
     box-shadow: 0 0 20px -8px rgba(212, 175, 55, 0.4);
+  }
+
+  .leaderboard-tab-active::after {
+    content: "";
+    @apply absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 w-[70%] rounded-full bg-gold;
+    animation: tab-underline-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  @keyframes tab-underline-in {
+    from {
+      opacity: 0;
+      transform: translateX(-50%) scaleX(0.3);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(-50%) scaleX(1);
+    }
+  }
+
+  .skeleton {
+    @apply rounded-lg bg-white/[0.06] relative overflow-hidden;
+  }
+
+  .skeleton::after {
+    content: "";
+    @apply absolute inset-0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.06) 50%,
+      transparent 100%
+    );
+    animation: skeleton-shimmer 1.4s ease-in-out infinite;
+  }
+
+  @keyframes skeleton-shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  .profile-banner {
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.04) inset,
+      0 24px 60px -24px rgba(0, 0, 0, 0.6);
+  }
+
+  .stat-tile {
+    @apply transition-colors duration-200 hover:border-white/15;
+  }
+
+  .match-row-opgg {
+    @apply relative flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-4
+      rounded-lg overflow-hidden cursor-pointer transition-all duration-200;
+    background: rgba(12, 18, 32, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .match-row-opgg:hover {
+    @apply border-gold/25;
+    background: rgba(18, 26, 46, 0.95);
+    transform: translateX(2px);
+  }
+
+  .match-row-opgg__accent {
+    @apply absolute left-0 top-0 bottom-0 w-1;
+  }
+
+  .match-row-opgg--win .match-row-opgg__accent {
+    background: linear-gradient(180deg, #34d399, #059669);
+  }
+
+  .match-row-opgg--loss .match-row-opgg__accent {
+    background: linear-gradient(180deg, #f87171, #b91c1c);
+  }
+
+  .match-row-opgg--win {
+    background: linear-gradient(
+      90deg,
+      rgba(52, 211, 153, 0.08) 0%,
+      rgba(12, 18, 32, 0.9) 28%
+    );
+  }
+
+  .match-row-opgg--loss {
+    background: linear-gradient(
+      90deg,
+      rgba(248, 113, 113, 0.08) 0%,
+      rgba(12, 18, 32, 0.9) 28%
+    );
+  }
+
+  .match-row-opgg__champ {
+    @apply pl-4 py-3 shrink-0;
+  }
+
+  .match-row-opgg__info {
+    @apply py-3;
+  }
+
+  .match-row-opgg__result {
+    @apply py-3 px-2;
+  }
+
+  .match-row-opgg__kda {
+    @apply py-3 pr-3 sm:pr-4;
+  }
+
+  .match-row-opgg__arrow {
+    @apply py-3 pr-4 text-gold-light/50;
   }
 
   .sync-pill {
@@ -481,23 +594,36 @@
   }
 
   .board-animate-in-right {
-    animation: board-slide-in-right 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation:
+      board-slide-in-right 0.65s cubic-bezier(0.22, 1, 0.36, 1) both,
+      board-content-fade 0.5s ease both;
   }
 
   .board-animate-in-left {
-    animation: board-slide-in-left 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation:
+      board-slide-in-left 0.65s cubic-bezier(0.22, 1, 0.36, 1) both,
+      board-content-fade 0.5s ease both;
   }
 
   .board-stagger-1 {
-    animation: board-fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.08s both;
+    animation: board-fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.06s both;
   }
 
   .board-stagger-2 {
-    animation: board-fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.16s both;
+    animation: board-fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.14s both;
   }
 
   .board-stagger-3 {
-    animation: board-fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.24s both;
+    animation: board-fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.22s both;
+  }
+
+  @keyframes board-content-fade {
+    from {
+      opacity: 0.4;
+    }
+    to {
+      opacity: 1;
+    }
   }
 
   @keyframes board-slide-in-right {
