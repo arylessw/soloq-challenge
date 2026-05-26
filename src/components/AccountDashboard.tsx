@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import { AvatarCropModal } from "@/components/AvatarCropModal";
 import { LinkRiotAccountForm } from "@/components/LinkRiotAccountForm";
 import { UserAvatar } from "@/components/UserAvatar";
 
@@ -30,8 +31,19 @@ export function AccountDashboard() {
   const [newPassword, setNewPassword] = useState("");
   const [savingPass, setSavingPass] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [cropSource, setCropSource] = useState<{
+    src: string;
+    mime: string;
+  } | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  function closeCrop() {
+    setCropSource((prev) => {
+      if (prev) URL.revokeObjectURL(prev.src);
+      return null;
+    });
+  }
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -100,15 +112,31 @@ export function AccountDashboard() {
     }
   }
 
-  async function onAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+  function onAvatarPick(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
+    e.target.value = "";
     if (!file) return;
+    setError(null);
+    setMessage(null);
+    setCropSource((prev) => {
+      if (prev) URL.revokeObjectURL(prev.src);
+      return { src: URL.createObjectURL(file), mime: file.type };
+    });
+  }
+
+  async function uploadCroppedAvatar(blob: Blob) {
     setUploadingAvatar(true);
     setError(null);
     setMessage(null);
     try {
+      const ext =
+        blob.type === "image/png"
+          ? "png"
+          : blob.type === "image/webp"
+            ? "webp"
+            : "jpg";
       const form = new FormData();
-      form.append("avatar", file);
+      form.append("avatar", blob, `avatar.${ext}`);
       const res = await fetch("/api/account/avatar", {
         method: "POST",
         body: form,
@@ -117,12 +145,13 @@ export function AccountDashboard() {
       if (!res.ok) throw new Error(data.error ?? "Upload échoué");
       setUser((u) => (u ? { ...u, avatarUrl: data.avatarUrl } : u));
       setMessage("Photo de profil mise à jour");
+      closeCrop();
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erreur");
+      throw err;
     } finally {
       setUploadingAvatar(false);
-      e.target.value = "";
     }
   }
 
@@ -179,6 +208,14 @@ export function AccountDashboard() {
 
   return (
     <div className="space-y-8 max-w-2xl mx-auto">
+      {cropSource && (
+        <AvatarCropModal
+          imageSrc={cropSource.src}
+          mime={cropSource.mime}
+          onConfirm={uploadCroppedAvatar}
+          onCancel={closeCrop}
+        />
+      )}
       {message && (
         <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-300">
           {message}
@@ -207,8 +244,8 @@ export function AccountDashboard() {
                   type="file"
                   accept="image/jpeg,image/png,image/webp"
                   className="sr-only"
-                  onChange={onAvatarChange}
-                  disabled={uploadingAvatar}
+                  onChange={onAvatarPick}
+                  disabled={uploadingAvatar || !!cropSource}
                 />
               </label>
               {user.avatarUrl && (
