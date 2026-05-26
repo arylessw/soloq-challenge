@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 
+const PWA_DISMISS_KEY = "soloq-pwa-dismissed";
+
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
@@ -10,7 +12,10 @@ type BeforeInstallPromptEvent = Event & {
 export function PwaRegister() {
   const [installEvent, setInstallEvent] =
     useState<BeforeInstallPromptEvent | null>(null);
-  const [dismissed, setDismissed] = useState(false);
+  const [dismissed, setDismissed] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return sessionStorage.getItem(PWA_DISMISS_KEY) === "1";
+  });
 
   useEffect(() => {
     if (!("serviceWorker" in navigator)) return;
@@ -20,6 +25,7 @@ export function PwaRegister() {
       .catch(() => {});
 
     const onBeforeInstall = (e: Event) => {
+      if (sessionStorage.getItem(PWA_DISMISS_KEY) === "1") return;
       e.preventDefault();
       setInstallEvent(e as BeforeInstallPromptEvent);
     };
@@ -28,12 +34,17 @@ export function PwaRegister() {
     return () => window.removeEventListener("beforeinstallprompt", onBeforeInstall);
   }, []);
 
+  function dismissInstall() {
+    sessionStorage.setItem(PWA_DISMISS_KEY, "1");
+    setInstallEvent(null);
+    setDismissed(true);
+  }
+
   async function install() {
     if (!installEvent) return;
     await installEvent.prompt();
     await installEvent.userChoice;
-    setInstallEvent(null);
-    setDismissed(true);
+    dismissInstall();
   }
 
   if (!installEvent || dismissed) return null;
@@ -51,7 +62,7 @@ export function PwaRegister() {
           </button>
           <button
             type="button"
-            onClick={() => setDismissed(true)}
+            onClick={dismissInstall}
             className="leaderboard-tab text-sm px-4"
           >
             Plus tard
