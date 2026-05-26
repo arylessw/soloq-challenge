@@ -1,7 +1,11 @@
 import type { PlayerView } from "@/lib/players";
 import { playerProfileUrl, playerShareImageUrl } from "@/lib/site-url";
 
-export function buildProfileShareText(player: PlayerView): string {
+export function buildProfileShareText(
+  player: PlayerView,
+  siteUrl?: string
+): string {
+  const profileUrl = playerProfileUrl(player.id, siteUrl);
   const lines = [
     `🏆 ${player.gameName}#${player.tagLine} — SoloQ Challenge EUW`,
     player.currentRank ? `Rang : ${player.currentRank}` : null,
@@ -19,7 +23,7 @@ export function buildProfileShareText(player: PlayerView): string {
     player.streakLabel && player.streakType
       ? `Série : ${player.streakType === "WIN" ? "🔥" : "💀"} ${player.streakLabel}`
       : null,
-    playerProfileUrl(player.id),
+    profileUrl,
   ];
 
   return lines.filter(Boolean).join("\n");

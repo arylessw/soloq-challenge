@@ -64,11 +64,10 @@ if errorlevel 1 (
   echo.
   echo OK — code pousse sur GitHub.
   echo.
-  echo IMPORTANT : le deploiement doit aller sur soloq-challenge.vercel.app
+  echo IMPORTANT : le deploiement doit aller sur soloq-challenge-kappa.vercel.app
   echo PAS sur l-rust-omega.vercel.app — voir VERCEL-PROJET.md si mauvais site.
-  echo Sur vercel.com : projet "soloq-challenge" doit etre lie a ce repo GitHub.
   echo Variables requises : DATABASE_URL, RIOT_API_KEY, SESSION_SECRET, ADMIN_SECRET
-  echo Sur Vercel : NEXT_PUBLIC_SITE_URL = https://soloq-challenge.vercel.app
+  echo Sur Vercel : NEXT_PUBLIC_SITE_URL = https://soloq-challenge-kappa.vercel.app
 )
 
 pause

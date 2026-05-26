@@ -1,13 +1,11 @@
 import type { Metadata } from "next";
-import { getSiteUrl } from "@/lib/site-url";
-
-const siteUrl = getSiteUrl();
+import { PRODUCTION_SITE_URL } from "@/lib/site-url";
 
 export const siteMetadata: Metadata = {
   title: "SoloQ Challenge — EUW",
   description:
     "Classement du défi SoloQ entre amis — progression LP, rang, winrate et KDA.",
-  metadataBase: new URL(siteUrl),
+  metadataBase: new URL(PRODUCTION_SITE_URL),
   openGraph: {
     title: "SoloQ Challenge — EUW",
     description:

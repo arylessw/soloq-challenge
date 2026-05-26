@@ -1,13 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { PlayerView } from "@/lib/players";
 import {
   buildProfileShareText,
   buildProfileShareTitle,
-  playerShareImageUrl,
 } from "@/lib/share";
-import { playerProfileUrl } from "@/lib/site-url";
+import {
+  PRODUCTION_SITE_URL,
+  playerProfileUrl,
+  playerShareImagePath,
+  playerShareImageUrl,
+} from "@/lib/site-url";
 
 type Props = {
   player: PlayerView;
@@ -18,10 +22,26 @@ type CopiedKind = "link" | "text" | "image" | null;
 export function ShareProfileButton({ player }: Props) {
   const [copied, setCopied] = useState<CopiedKind>(null);
   const [downloading, setDownloading] = useState(false);
+  const [siteOrigin, setSiteOrigin] = useState<string | null>(null);
 
-  const profileUrl = playerProfileUrl(player.id);
-  const imageUrl = playerShareImageUrl(player.id);
-  const shareText = buildProfileShareText(player);
+  useEffect(() => {
+    setSiteOrigin(window.location.origin);
+  }, []);
+
+  const siteBase = siteOrigin ?? PRODUCTION_SITE_URL;
+  const profileUrl = useMemo(
+    () => playerProfileUrl(player.id, siteBase),
+    [player.id, siteBase]
+  );
+  const imagePath = playerShareImagePath(player.id);
+  const imageUrl = useMemo(
+    () => playerShareImageUrl(player.id, siteBase),
+    [player.id, siteBase]
+  );
+  const shareText = useMemo(
+    () => buildProfileShareText(player, siteBase),
+    [player, siteBase]
+  );
 
   async function copy(text: string, kind: CopiedKind) {
     try {
@@ -53,7 +73,7 @@ export function ShareProfileButton({ player }: Props) {
   async function downloadCard() {
     setDownloading(true);
     try {
-      const res = await fetch(imageUrl);
+      const res = await fetch(imagePath);
       if (!res.ok) throw new Error("Image indisponible");
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
@@ -63,7 +83,7 @@ export function ShareProfileButton({ player }: Props) {
       a.click();
       URL.revokeObjectURL(url);
     } catch {
-      window.open(imageUrl, "_blank", "noopener,noreferrer");
+      window.open(imagePath, "_blank", "noopener,noreferrer");
     } finally {
       setDownloading(false);
     }
@@ -114,7 +134,7 @@ export function ShareProfileButton({ player }: Props) {
           {downloading ? "Téléchargement…" : "Télécharger la carte"}
         </button>
         <a
-          href={imageUrl}
+          href={imagePath}
           target="_blank"
           rel="noopener noreferrer"
           className="leaderboard-tab text-xs inline-flex items-center"
