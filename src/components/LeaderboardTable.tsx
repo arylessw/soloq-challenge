@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { PlayerMeta } from "@/components/PlayerMeta";
 import { RankWithEmblem } from "@/components/RankEmblem";
+import { TrendBadge } from "@/components/TrendBadge";
 import { UserAvatar } from "@/components/UserAvatar";
 import { championIconUrl } from "@/lib/champion-stats";
 import { playerListName, playerListSubtitle } from "@/lib/player-display";
@@ -22,6 +23,7 @@ type Props = {
   board: LeaderboardMeta;
   startRank?: number;
   titleMap?: Map<string, PlayerTitle[]>;
+  movements?: Map<string, number>;
 };
 
 export function LeaderboardTable({
@@ -29,6 +31,7 @@ export function LeaderboardTable({
   board,
   startRank = 1,
   titleMap,
+  movements,
 }: Props) {
   if (players.length === 0) return null;
 
@@ -67,17 +70,22 @@ export function LeaderboardTable({
           {players.map((p, i) => {
             const place = startRank + i;
             const tone = metricTone(p, board.id);
+            const move = movements?.get(p.id);
 
             return (
-              <tr key={p.id} className="border-b border-white/[0.04]">
+              <tr
+                key={p.id}
+                className={`border-b border-white/[0.04] ${move ? "row-moved" : ""}`}
+              >
                 <td className="py-4 pl-6 pr-4 w-14">
-                  <span
-                    className={`rank-badge text-xs ${
-                      place <= 3 && startRank === 1 ? "rank-badge-muted" : "rank-badge-muted"
-                    }`}
-                  >
+                  <span className="rank-badge text-xs rank-badge-muted">
                     {place}
                   </span>
+                  {move ? (
+                    <div className="mt-1 flex justify-center">
+                      <TrendBadge delta={move} />
+                    </div>
+                  ) : null}
                 </td>
                 <td className="py-4 pr-4 font-medium min-w-[140px]">
                   <Link

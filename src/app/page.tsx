@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { GroupMeta } from "@/components/GroupMeta";
 import { Leaderboard } from "@/components/Leaderboard";
 import { PageHero } from "@/components/PageHero";
 import { PlayerOfWeekBanner } from "@/components/PlayerOfWeekBanner";
@@ -37,6 +38,7 @@ export default async function HomePage() {
       </div>
 
       <TitlesShowcase />
+      <GroupMeta />
       <Leaderboard />
     </div>
   );

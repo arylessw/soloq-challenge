@@ -50,6 +50,33 @@ export function Leaderboard() {
     [players, activeBoard]
   );
 
+  // Mouvement de classement entre deux syncs (calculé côté client, par board)
+  const [movementsByBoard, setMovementsByBoard] = useState<
+    Map<LeaderboardId, Map<string, number>>
+  >(new Map());
+  const prevOrderRef = useRef<Map<LeaderboardId, string[]>>(new Map());
+
+  useEffect(() => {
+    if (players.length === 0) return;
+    const next = new Map<LeaderboardId, Map<string, number>>();
+    for (const board of LEADERBOARDS) {
+      const order = sortPlayersForBoard(players, board.id).map((p) => p.id);
+      const prev = prevOrderRef.current.get(board.id);
+      const deltas = new Map<string, number>();
+      if (prev) {
+        order.forEach((id, idx) => {
+          const oldIdx = prev.indexOf(id);
+          if (oldIdx >= 0) deltas.set(id, oldIdx - idx);
+        });
+      }
+      next.set(board.id, deltas);
+      prevOrderRef.current.set(board.id, order);
+    }
+    setMovementsByBoard(next);
+  }, [players]);
+
+  const movements = movementsByBoard.get(activeBoard);
+
   const switchBoard = useCallback(
     (next: LeaderboardId) => {
       if (next === activeBoard) return;
@@ -144,6 +171,12 @@ export function Leaderboard() {
     return <LeaderboardSkeleton />;
   }
 
+  const totalCountdown = AUTO_REFRESH_MS / 1000;
+  const progressPct = Math.max(
+    0,
+    Math.min(100, (1 - countdown / totalCountdown) * 100)
+  );
+
   return (
     <div>
       <div className="leaderboard-panel flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -178,22 +211,32 @@ export function Leaderboard() {
             {boardMeta.description}
           </p>
           {players.length > 0 && (
-            <div className="sync-pill mt-4 mx-auto">
-              <span
-                className={`h-1.5 w-1.5 rounded-full ${
-                  syncing ? "bg-gold animate-pulse" : "bg-emerald-400"
-                }`}
-              />
-              {syncing ? (
-                "Actualisation…"
-              ) : lastRefresh ? (
-                <>
-                  Sync {formatRelativeTime(lastRefresh)}
-                  <span className="text-muted/40">·</span>
-                  prochaine {formatCountdown(countdown)}
-                </>
-              ) : (
-                "Auto toutes les 3 min"
+            <div className="mt-4 flex flex-col items-center gap-2.5">
+              <div className="sync-pill">
+                <span
+                  className={`h-1.5 w-1.5 rounded-full ${
+                    syncing ? "bg-gold animate-pulse" : "bg-emerald-400"
+                  }`}
+                />
+                {syncing ? (
+                  "Actualisation…"
+                ) : lastRefresh ? (
+                  <>
+                    Sync {formatRelativeTime(lastRefresh)}
+                    <span className="text-muted/40">·</span>
+                    prochaine {formatCountdown(countdown)}
+                  </>
+                ) : (
+                  "Auto toutes les 3 min"
+                )}
+              </div>
+              {lastRefresh && (
+                <div className="sync-progress-track" aria-hidden>
+                  <div
+                    className="sync-progress-fill"
+                    style={{ width: syncing ? "100%" : `${progressPct}%` }}
+                  />
+                </div>
               )}
             </div>
           )}
@@ -220,6 +263,7 @@ export function Leaderboard() {
                   players={ranked}
                   boardId={activeBoard}
                   titleMap={titleMap}
+                  movements={movements}
                 />
               </div>
             )}
@@ -229,6 +273,7 @@ export function Leaderboard() {
                 board={boardMeta}
                 startRank={ranked.length >= 3 ? 4 : 1}
                 titleMap={titleMap}
+                movements={movements}
               />
             </div>
             {activeBoard === "kda" && ranked.every((p) => p.avgKda == null) && (

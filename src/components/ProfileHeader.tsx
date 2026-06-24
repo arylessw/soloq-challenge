@@ -10,6 +10,30 @@ import type { PlayerView } from "@/lib/players";
 import { playerListName } from "@/lib/player-display";
 import type { PlayerTitle } from "@/lib/player-titles";
 import { tierAccentKey, TIER_ACCENT_VARS, DEFAULT_TIER_ACCENT } from "@/lib/tier-accent";
+import {
+  DIVISIONS,
+  TIERS,
+  TIER_LABELS,
+  divisionIndex,
+  divisionRequired,
+  tierIndex,
+  type Division,
+  type Tier,
+} from "@/lib/ranks";
+
+function nextStepLabel(tier: string, division: string | null): string {
+  const t = tier.toUpperCase() as Tier;
+  if (division && division.toUpperCase() === "I") {
+    const next = TIERS[tierIndex(tier) + 1];
+    return next ? `Promo ${TIER_LABELS[next]}` : "Palier max";
+  }
+  if (division) {
+    const di = divisionIndex(division);
+    const nextDiv = DIVISIONS[di + 1] as Division | undefined;
+    if (nextDiv) return `${TIER_LABELS[t] ?? tier} ${nextDiv}`;
+  }
+  return "Division suivante";
+}
 
 type Props = {
   player: PlayerView;
@@ -109,8 +133,81 @@ export function ProfileHeader({ player, titles }: Props) {
             <StatTile label="W/L saison" value="—" />
           )}
         </div>
+
+        {player.currentTier && player.currentLp != null && (
+          <RankProgress
+            tier={player.currentTier}
+            division={player.currentDivision}
+            lp={player.currentLp}
+            accent={accent}
+          />
+        )}
       </div>
     </header>
+  );
+}
+
+function RankProgress({
+  tier,
+  division,
+  lp,
+  accent,
+}: {
+  tier: string;
+  division: string | null;
+  lp: number;
+  accent: { main: string; light: string };
+}) {
+  const apex = !divisionRequired(tier);
+
+  if (apex) {
+    return (
+      <div className="mt-5">
+        <div className="mb-1.5 flex items-center justify-between text-[11px] text-muted">
+          <span>Palier {TIER_LABELS[tier.toUpperCase() as Tier] ?? tier}</span>
+          <span className="tabular-nums" style={{ color: accent.light }}>
+            {lp} LP
+          </span>
+        </div>
+        <div className="rank-lp-track">
+          <div
+            className="rank-lp-fill"
+            style={{
+              width: "100%",
+              opacity: 0.5,
+              background: `linear-gradient(90deg, ${accent.main}, ${accent.light})`,
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  const pct = Math.max(3, Math.min(100, lp));
+
+  return (
+    <div className="mt-5" title={`${lp} / 100 LP`}>
+      <div className="mb-1.5 flex items-center justify-between text-[11px] text-muted">
+        <span className="tabular-nums">{lp} / 100 LP</span>
+        <span className="inline-flex items-center gap-1">
+          <span className="opacity-60" aria-hidden>
+            →
+          </span>
+          <span style={{ color: accent.light }}>
+            {nextStepLabel(tier, division)}
+          </span>
+        </span>
+      </div>
+      <div className="rank-lp-track">
+        <div
+          className="rank-lp-fill"
+          style={{
+            width: `${pct}%`,
+            background: `linear-gradient(90deg, ${accent.main}, ${accent.light})`,
+          }}
+        />
+      </div>
+    </div>
   );
 }
 

@@ -11,8 +11,16 @@ export function RoleStatsPanel({ stats }: Props) {
 
   if (top.length === 0) {
     return (
-      <div className="card text-center py-8 text-sm text-muted">
-        Stats par rôle disponibles après la prochaine sync.
+      <div className="empty-state">
+        <div className="empty-state-icon" aria-hidden>
+          🎯
+        </div>
+        <p className="font-display text-base text-gold-light mb-1">
+          Rôles à découvrir
+        </p>
+        <p className="text-sm text-muted max-w-xs mx-auto">
+          Tes rôles favoris se révèlent après quelques parties ranked solo.
+        </p>
       </div>
     );
   }

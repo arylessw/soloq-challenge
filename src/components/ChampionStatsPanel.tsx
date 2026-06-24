@@ -11,8 +11,17 @@ export function ChampionStatsPanel({ stats }: Props) {
 
   if (top.length === 0) {
     return (
-      <div className="card text-center py-8 text-sm text-muted">
-        Stats par champion disponibles après la prochaine sync.
+      <div className="empty-state">
+        <div className="empty-state-icon" aria-hidden>
+          🏆
+        </div>
+        <p className="font-display text-base text-gold-light mb-1">
+          Aucun champion pour l&apos;instant
+        </p>
+        <p className="text-sm text-muted max-w-xs mx-auto">
+          Lance une ranked solo — tes mains apparaîtront ici dès la prochaine
+          sync des parties.
+        </p>
       </div>
     );
   }

@@ -81,7 +81,12 @@ export function DuelsBoard() {
     return (
       <article className={`duel-card ${isFinished ? "duel-card-finished" : ""}`}>
         <div className="duel-card-header">
-          <span className="duel-vs">VS</span>
+          <div className="flex items-center gap-2">
+            <span className="duel-vs">VS</span>
+            <span className="duel-timer">
+              {duel.metric === "lp" ? "📊 LP" : "⚔️ Victoires"}
+            </span>
+          </div>
           {isFinished ? (
             <span className="text-xs text-muted">Terminé</span>
           ) : (
@@ -187,6 +192,11 @@ export function DuelsBoard() {
             />
           </div>
         </div>
+        <p className="flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/[0.06] px-3 py-2 text-sm text-emerald-300/90">
+          <span aria-hidden>{metric === "lp" ? "📊" : "⚔️"}</span>
+          Duel sur {days} jour{days > 1 ? "s" : ""} — gagnant&nbsp;= celui qui
+          gagne le plus {metric === "lp" ? "de LP" : "de victoires"}.
+        </p>
         {error && (
           <p className="text-sm text-red-300">{error}</p>
         )}

@@ -738,12 +738,173 @@
     color: var(--profile-accent-light, var(--color-gold-light));
   }
 
+  /* Pulse du point « live » (graphiques, états vides) */
+  @keyframes lp-empty-pulse {
+    0% {
+      transform: scale(0.6);
+      opacity: 0.55;
+    }
+    70% {
+      transform: scale(1.9);
+      opacity: 0;
+    }
+    100% {
+      transform: scale(0.6);
+      opacity: 0;
+    }
+  }
+
+  .lp-empty-pulse {
+    animation: lp-empty-pulse 2.4s ease-out infinite;
+  }
+
+  /* Bandeau Joueur de la semaine — version prestige */
+  .potw-crown {
+    filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.6));
+    animation: potw-crown-float 3.4s ease-in-out infinite;
+  }
+
+  @keyframes potw-crown-float {
+    0%,
+    100% {
+      transform: translateY(0) rotate(-5deg);
+    }
+    50% {
+      transform: translateY(-3px) rotate(5deg);
+    }
+  }
+
+  .potw-shimmer::before {
+    content: "";
+    @apply pointer-events-none absolute inset-0 rounded-2xl;
+    padding: 1px;
+    background: linear-gradient(
+      120deg,
+      rgba(212, 175, 55, 0.7),
+      rgba(52, 211, 153, 0.5),
+      rgba(212, 175, 55, 0.7)
+    );
+    background-size: 220% 100%;
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: potw-border-pan 7s linear infinite;
+    opacity: 0.75;
+  }
+
+  @keyframes potw-border-pan {
+    to {
+      background-position: 220% 0;
+    }
+  }
+
+  .potw-lp-glow {
+    background: radial-gradient(
+      ellipse at center,
+      rgba(52, 211, 153, 0.28),
+      transparent 70%
+    );
+  }
+
+  .animate-pop-in {
+    animation: pop-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  @keyframes pop-in {
+    from {
+      opacity: 0;
+      transform: scale(0.96) translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  /* Barre de progression de la sync auto */
+  .sync-progress-track {
+    @apply relative mx-auto h-1 w-full max-w-[260px] overflow-hidden rounded-full;
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .sync-progress-fill {
+    @apply absolute inset-y-0 left-0 rounded-full;
+    background: linear-gradient(
+      90deg,
+      var(--color-gold-dim),
+      var(--color-gold),
+      var(--color-gold-light)
+    );
+    box-shadow: 0 0 10px -2px var(--color-gold);
+    transition: width 1s linear;
+  }
+
+  /* Badge de tendance (mouvement de classement entre deux syncs) */
+  .trend-badge {
+    @apply inline-flex items-center gap-0.5 text-[10px] font-semibold tabular-nums leading-none;
+  }
+
+  .trend-up {
+    @apply text-emerald-400;
+  }
+
+  .trend-down {
+    @apply text-red-400;
+  }
+
+  .row-moved {
+    animation: row-moved-flash 1.6s ease-out;
+  }
+
+  @keyframes row-moved-flash {
+    0% {
+      background: color-mix(in srgb, var(--color-gold) 15%, transparent);
+    }
+    100% {
+      background: transparent;
+    }
+  }
+
+  /* Barre de progression intra-rang (LP vers la division suivante) */
+  .rank-lp-track {
+    @apply relative h-1.5 w-full overflow-hidden rounded-full;
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .rank-lp-fill {
+    @apply absolute inset-y-0 left-0 rounded-full;
+    transition: width 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* État vide générique soigné */
+  .empty-state {
+    @apply relative overflow-hidden rounded-2xl border border-white/[0.06] px-6 py-10 text-center;
+    background: linear-gradient(
+      165deg,
+      rgba(18, 26, 46, 0.7) 0%,
+      rgba(12, 18, 32, 0.85) 100%
+    );
+  }
+
+  .empty-state-icon {
+    @apply mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl text-2xl;
+    background: rgba(212, 175, 55, 0.1);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .board-animate-in-right,
     .board-animate-in-left,
     .board-stagger-1,
     .board-stagger-2,
-    .board-stagger-3 {
+    .board-stagger-3,
+    .lp-empty-pulse,
+    .potw-crown,
+    .potw-shimmer::before,
+    .animate-pop-in,
+    .row-moved {
       animation: none;
     }
 

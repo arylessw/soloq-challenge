@@ -21,11 +21,16 @@ export function PlayerOfWeekBanner({ player, hasData }: Props) {
   return (
     <Link
       href={`/games/${player.playerId}`}
-      className="potw-banner mb-8 block relative z-[1] group"
+      className="potw-banner potw-shimmer animate-pop-in mb-8 block relative z-[1] group"
     >
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <p className="potw-label">Joueur de la semaine</p>
+        <div className="min-w-0">
+          <p className="potw-label flex items-center gap-1.5">
+            <span aria-hidden className="potw-crown inline-block text-sm">
+              👑
+            </span>
+            Joueur de la semaine
+          </p>
           <h2 className="font-display text-2xl sm:text-3xl text-gold-light group-hover:text-gold transition">
             {player.gameName}
             <span className="text-muted text-base font-sans ml-2">
@@ -36,11 +41,17 @@ export function PlayerOfWeekBanner({ player, hasData }: Props) {
             {player.currentRank ?? "Rang en sync…"}
           </p>
         </div>
-        <div className="text-right">
+        <div className="relative text-right shrink-0">
+          <div
+            className="potw-lp-glow pointer-events-none absolute -inset-6 -z-[1]"
+            aria-hidden
+          />
           <p className="text-emerald-400 font-display text-3xl sm:text-4xl tabular-nums drop-shadow-lg">
             +{player.lpDelta} LP
           </p>
-          <p className="text-xs text-muted mt-1 uppercase tracking-wider">cette semaine</p>
+          <p className="text-xs text-muted mt-1 uppercase tracking-wider">
+            cette semaine
+          </p>
         </div>
       </div>
     </Link>

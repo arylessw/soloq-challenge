@@ -11,6 +11,11 @@ import { getLpHistory } from "@/lib/lp-snapshots";
 import { assignTitles } from "@/lib/player-titles";
 import { getPlayerById, listPlayers } from "@/lib/players";
 import { getSiteUrl } from "@/lib/site-url";
+import {
+  tierAccentKey,
+  TIER_ACCENT_VARS,
+  DEFAULT_TIER_ACCENT,
+} from "@/lib/tier-accent";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -53,6 +58,8 @@ export default async function PlayerGamesPage({ params }: Props) {
   if (!player) notFound();
 
   const titles = assignTitles(allPlayers).get(id) ?? [];
+  const accent =
+    TIER_ACCENT_VARS[tierAccentKey(player.currentTier)] ?? DEFAULT_TIER_ACCENT;
 
   return (
     <TierProfileAccent tier={player.currentTier}>
@@ -67,7 +74,7 @@ export default async function PlayerGamesPage({ params }: Props) {
       <ProfileHeader player={player} titles={titles} />
 
       <div className="grid gap-6 lg:grid-cols-2 mb-6">
-        <LpChart points={lpHistory} />
+        <LpChart points={lpHistory} accent={accent} />
         <ChampionStatsPanel stats={player.championStats} />
       </div>
 

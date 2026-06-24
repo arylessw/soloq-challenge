@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { PlayerMeta } from "@/components/PlayerMeta";
 import { RankEmblem } from "@/components/RankEmblem";
+import { TrendBadge } from "@/components/TrendBadge";
 import { UserAvatar } from "@/components/UserAvatar";
 import { championIconUrl } from "@/lib/champion-stats";
 import { playerListName, playerListSubtitle } from "@/lib/player-display";
@@ -19,9 +20,15 @@ type Props = {
   players: PlayerView[];
   boardId: LeaderboardId;
   titleMap?: Map<string, PlayerTitle[]>;
+  movements?: Map<string, number>;
 };
 
-export function LeaderboardPodium({ players, boardId, titleMap }: Props) {
+export function LeaderboardPodium({
+  players,
+  boardId,
+  titleMap,
+  movements,
+}: Props) {
   const top = players.slice(0, 3);
   if (top.length === 0) return null;
 
@@ -45,6 +52,11 @@ export function LeaderboardPodium({ players, boardId, titleMap }: Props) {
             isFirst ? "podium-first ring-1 ring-gold/40" : ""
           }`}
         >
+          {movements?.get(p.id) ? (
+            <span className="absolute right-2.5 top-2.5">
+              <TrendBadge delta={movements.get(p.id)} />
+            </span>
+          ) : null}
           <div
             className={`rank-badge mx-auto mb-3 ${
               isFirst ? "rank-badge-gold h-11 w-11 text-lg" : "rank-badge-muted"
