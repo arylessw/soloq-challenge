@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { DuelTimelineChart } from "@/components/DuelTimelineChart";
 import { TitleBadgeList } from "@/components/TitleBadge";
 import { UserAvatar } from "@/components/UserAvatar";
+import { accentFor } from "@/lib/compare";
 import { assignTitles } from "@/lib/player-titles";
 import type { DuelView } from "@/lib/duels";
 import type { PlayerView } from "@/lib/players";
@@ -114,6 +116,21 @@ export function DuelsBoard() {
             titles={titleMap.get(duel.playerB.id) ?? []}
           />
         </div>
+
+        {duel.metric === "lp" && duel.timeline && (
+          <DuelTimelineChart
+            a={{
+              points: duel.timeline.a,
+              color: accentFor(duel.playerA).main,
+              name: playerListName(duel.playerA),
+            }}
+            b={{
+              points: duel.timeline.b,
+              color: accentFor(duel.playerB).main,
+              name: playerListName(duel.playerB),
+            }}
+          />
+        )}
       </article>
     );
   }

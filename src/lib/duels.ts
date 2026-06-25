@@ -5,6 +5,9 @@ import { playerWithOwnerInclude } from "@/lib/player-include";
 
 export type DuelMetric = "lp" | "wins";
 
+export type DuelSeriesPoint = { t: number; v: number };
+export type DuelTimeline = { a: DuelSeriesPoint[]; b: DuelSeriesPoint[] };
+
 export type DuelView = {
   id: string;
   metric: DuelMetric;
@@ -18,6 +21,8 @@ export type DuelView = {
   leaderId: string | null;
   winnerId: string | null;
   daysLeft: number;
+  /** Évolution du score (delta LP depuis le début) — duels LP actifs uniquement. */
+  timeline: DuelTimeline | null;
 };
 
 function duelMetric(raw: string): DuelMetric {
@@ -133,7 +138,75 @@ function toDuelView(
     leaderId,
     winnerId: duel.winnerId,
     daysLeft,
+    timeline: null,
   };
+}
+
+type RawDuel = {
+  id: string;
+  startsAt: Date;
+  startLpNetA: number;
+  startLpNetB: number;
+  playerAId: string;
+  playerBId: string;
+};
+
+/**
+ * Attache à chaque duel LP actif l'évolution du score des deux joueurs
+ * (delta LP depuis le début du duel) via une seule requête de snapshots.
+ */
+async function attachTimelines(
+  views: DuelView[],
+  raws: RawDuel[]
+): Promise<void> {
+  const lp = views
+    .map((v, i) => ({ v, raw: raws[i] }))
+    .filter((x) => x.v.metric === "lp");
+  if (lp.length === 0) return;
+
+  const playerIds = [
+    ...new Set(lp.flatMap((x) => [x.v.playerA.id, x.v.playerB.id])),
+  ];
+  const minStart = new Date(
+    Math.min(...lp.map((x) => x.raw.startsAt.getTime()))
+  );
+
+  const snaps = await prisma.lpSnapshot.findMany({
+    where: { playerId: { in: playerIds }, recordedAt: { gte: minStart } },
+    orderBy: { recordedAt: "asc" },
+    select: { playerId: true, lpNet: true, recordedAt: true },
+  });
+
+  const byPlayer = new Map<string, { lpNet: number; recordedAt: Date }[]>();
+  for (const s of snaps) {
+    const arr = byPlayer.get(s.playerId) ?? [];
+    arr.push(s);
+    byPlayer.set(s.playerId, arr);
+  }
+
+  const now = Date.now();
+  const series = (
+    playerId: string,
+    startsAt: Date,
+    startLp: number,
+    currentScore: number
+  ): DuelSeriesPoint[] => {
+    const startMs = startsAt.getTime();
+    const pts: DuelSeriesPoint[] = [{ t: startMs, v: 0 }];
+    for (const s of byPlayer.get(playerId) ?? []) {
+      const t = s.recordedAt.getTime();
+      if (t >= startMs) pts.push({ t, v: s.lpNet - startLp });
+    }
+    pts.push({ t: now, v: currentScore });
+    return pts;
+  };
+
+  for (const { v, raw } of lp) {
+    v.timeline = {
+      a: series(raw.playerAId, raw.startsAt, raw.startLpNetA, v.scoreA),
+      b: series(raw.playerBId, raw.startsAt, raw.startLpNetB, v.scoreB),
+    };
+  }
 }
 
 export async function listDuels(): Promise<{
@@ -152,13 +225,20 @@ export async function listDuels(): Promise<{
 
   const { toView } = await import("@/lib/players");
   const active: DuelView[] = [];
+  const activeRaw: RawDuel[] = [];
   const finished: DuelView[] = [];
 
   for (const d of duels) {
     const view = toDuelView(d, toView(d.playerA), toView(d.playerB));
-    if (d.status === "active") active.push(view);
-    else finished.push(view);
+    if (d.status === "active") {
+      active.push(view);
+      activeRaw.push(d);
+    } else {
+      finished.push(view);
+    }
   }
+
+  await attachTimelines(active, activeRaw);
 
   return { active, finished: finished.slice(0, 10) };
 }

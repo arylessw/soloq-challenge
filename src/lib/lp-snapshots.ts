@@ -98,6 +98,58 @@ export async function getLpHistory(playerId: string): Promise<LpHistoryPoint[]> 
   }));
 }
 
+export type WeekPoint = { t: string; v: number };
+export type WeeklyProgress = { delta: number; points: WeekPoint[] };
+
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+
+/**
+ * Progression LP de chaque joueur sur les 7 derniers jours (fenêtre glissante).
+ * Une seule requête : tous les snapshots de la fenêtre, groupés par joueur.
+ * delta = lpNet du dernier point − lpNet du premier point de la fenêtre.
+ */
+export async function getWeeklyProgress(): Promise<Map<string, WeeklyProgress>> {
+  const weekStart = new Date(Date.now() - WEEK_MS);
+
+  // Points dans la fenêtre + baseline = dernier snapshot AVANT la fenêtre
+  // (sinon le premier mouvement de la semaine serait absorbé dans la base).
+  const [inWindow, baselines] = await Promise.all([
+    prisma.lpSnapshot.findMany({
+      where: { recordedAt: { gte: weekStart } },
+      orderBy: { recordedAt: "asc" },
+      select: { playerId: true, lpNet: true, recordedAt: true },
+    }),
+    prisma.lpSnapshot.findMany({
+      where: { recordedAt: { lt: weekStart } },
+      orderBy: { recordedAt: "desc" },
+      distinct: ["playerId"],
+      select: { playerId: true, lpNet: true },
+    }),
+  ]);
+
+  const baseMap = new Map(baselines.map((b) => [b.playerId, b.lpNet]));
+
+  const grouped = new Map<string, { lpNet: number; recordedAt: Date }[]>();
+  for (const s of inWindow) {
+    const arr = grouped.get(s.playerId) ?? [];
+    arr.push(s);
+    grouped.set(s.playerId, arr);
+  }
+
+  const result = new Map<string, WeeklyProgress>();
+  for (const [playerId, arr] of grouped) {
+    const base = baseMap.get(playerId) ?? arr[0].lpNet;
+    const last = arr[arr.length - 1].lpNet;
+    const points: WeekPoint[] = [
+      { t: weekStart.toISOString(), v: 0 },
+      ...arr.map((s) => ({ t: s.recordedAt.toISOString(), v: s.lpNet - base })),
+    ];
+    result.set(playerId, { delta: last - base, points });
+  }
+
+  return result;
+}
+
 export async function getLpDeltaSince(
   playerId: string,
   since: Date

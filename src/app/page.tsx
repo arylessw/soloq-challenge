@@ -4,6 +4,7 @@ import { Leaderboard } from "@/components/Leaderboard";
 import { PageHero } from "@/components/PageHero";
 import { PlayerOfWeekBanner } from "@/components/PlayerOfWeekBanner";
 import { TitlesShowcase } from "@/components/TitlesShowcase";
+import { WeeklyRace } from "@/components/WeeklyRace";
 import { getPlayerOfWeek, hasEnoughWeekData } from "@/lib/player-of-week";
 
 export default async function HomePage() {
@@ -37,6 +38,7 @@ export default async function HomePage() {
         </Link>
       </div>
 
+      <WeeklyRace />
       <TitlesShowcase />
       <GroupMeta />
       <Leaderboard />
