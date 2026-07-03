@@ -42,14 +42,16 @@ export function Nav() {
     <nav className="nav-bar">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3.5 sm:px-6 gap-3">
         <Link href="/" className="group flex items-center gap-3 shrink-0">
-          <Image
-            src="/icon.svg"
-            alt=""
-            width={36}
-            height={36}
-            className="rounded-lg transition group-hover:opacity-90"
-            unoptimized
-          />
+          <span className="nav-logo-mark">
+            <Image
+              src="/icon.svg"
+              alt=""
+              width={34}
+              height={34}
+              className="rounded-md transition group-hover:opacity-90"
+              unoptimized
+            />
+          </span>
           <span className="hidden sm:block">
             <span className="font-display text-lg tracking-wide text-gold-light block leading-tight">
               SoloQ Challenge
@@ -69,8 +71,8 @@ export function Nav() {
               <li key={l.href}>
                 <Link
                   href={l.href}
-                  className={`nav-link block px-2.5 sm:px-3 py-2 rounded-lg text-xs sm:text-sm ${
-                    active ? "nav-link-active bg-gold/5" : "hover:bg-white/5"
+                  className={`nav-link block px-2.5 sm:px-3 py-2 text-xs sm:text-sm ${
+                    active ? "nav-link-active" : ""
                   }`}
                 >
                   {l.label}
@@ -83,10 +85,8 @@ export function Nav() {
               <li>
                 <Link
                   href="/compte"
-                  className={`nav-link flex items-center gap-2 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm ${
-                    pathname.startsWith("/compte")
-                      ? "nav-link-active bg-gold/5"
-                      : "hover:bg-white/5"
+                  className={`nav-link flex items-center gap-2 px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm normal-case tracking-normal font-sans ${
+                    pathname.startsWith("/compte") ? "nav-link-active" : ""
                   }`}
                 >
                   <UserAvatar
@@ -103,7 +103,7 @@ export function Nav() {
                 <button
                   type="button"
                   onClick={logout}
-                  className="nav-link px-3 py-2 rounded-lg text-xs hover:bg-white/5"
+                  className="nav-link px-3 py-2 text-xs"
                 >
                   Déco
                 </button>
@@ -114,10 +114,8 @@ export function Nav() {
               <li>
                 <Link
                   href="/compte/inscription"
-                  className={`nav-link block px-2.5 sm:px-3 py-2 rounded-lg text-xs sm:text-sm ${
-                    pathname === "/compte/inscription"
-                      ? "nav-link-active bg-gold/5"
-                      : "hover:bg-white/5"
+                  className={`nav-link block px-2.5 sm:px-3 py-2 text-xs sm:text-sm ${
+                    pathname === "/compte/inscription" ? "nav-link-active" : ""
                   }`}
                 >
                   Créer un compte
@@ -126,10 +124,8 @@ export function Nav() {
               <li>
                 <Link
                   href="/compte/connexion"
-                  className={`nav-link block px-2.5 sm:px-3 py-2 rounded-lg text-xs sm:text-sm ${
-                    pathname === "/compte/connexion"
-                      ? "nav-link-active bg-gold/5"
-                      : "hover:bg-white/5"
+                  className={`nav-link block px-2.5 sm:px-3 py-2 text-xs sm:text-sm ${
+                    pathname === "/compte/connexion" ? "nav-link-active" : ""
                   }`}
                 >
                   Connexion

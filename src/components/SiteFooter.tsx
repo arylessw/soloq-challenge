@@ -3,7 +3,7 @@ import { ThemeAccentPicker } from "@/components/ThemeAccentPicker";
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-gold/10 mt-16 py-8">
+    <footer className="site-footer mt-16 py-8">
       <div className="page-shell !py-0 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted">
         <p>
           SoloQ Challenge n&apos;est pas affilié à Riot Games.{" "}

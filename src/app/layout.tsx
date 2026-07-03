@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Cinzel, DM_Sans } from "next/font/google";
+import { Barlow_Condensed, Cinzel, DM_Sans } from "next/font/google";
 import { Nav } from "@/components/Nav";
 import { SiteThemeProvider } from "@/components/SiteThemeProvider";
 import { PwaRegister } from "@/components/PwaRegister";
@@ -21,6 +21,13 @@ const dmSans = DM_Sans({
   display: "swap",
 });
 
+const barlow = Barlow_Condensed({
+  subsets: ["latin"],
+  weight: ["500", "600"],
+  variable: "--font-condensed",
+  display: "swap",
+});
+
 export const metadata: Metadata = siteMetadata;
 
 export default function RootLayout({
@@ -29,7 +36,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr" className={`${cinzel.variable} ${dmSans.variable}`} data-site-theme="gold">
+    <html
+      lang="fr"
+      className={`${cinzel.variable} ${dmSans.variable} ${barlow.variable}`}
+      data-site-theme="gold"
+    >
       <body>
         <SiteThemeProvider>
           <RiotApiBanner />

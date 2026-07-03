@@ -48,8 +48,8 @@ export function LeaderboardPodium({
       >
         <Link
           href={`/games/${p.id}`}
-          className={`podium-card w-full group shadow-lg ${tierCardClass(p.currentTier)} ${
-            isFirst ? "podium-first ring-1 ring-gold/40" : ""
+          className={`podium-card w-full group ${tierCardClass(p.currentTier)} ${
+            isFirst ? "podium-first" : ""
           }`}
         >
           {movements?.get(p.id) ? (
@@ -103,7 +103,7 @@ export function LeaderboardPodium({
           </p>
           <p className="text-[11px] text-muted truncate">{playerListSubtitle(p)}</p>
           <PlayerMeta player={p} titles={titleMap?.get(p.id)} />
-          <p className="font-display text-2xl mt-2">
+          <p className="text-metric text-2xl mt-2">
             <AnimatedMetric player={p} boardId={boardId} tone={tone} />
           </p>
           {metricSubtext(p, boardId) && (
@@ -115,7 +115,7 @@ export function LeaderboardPodium({
             isFirst ? "podium-pillar-gold" : ""
           }`}
         >
-          <span className="text-[10px] uppercase tracking-[0.2em] text-muted/80 font-medium">
+          <span className="label-condensed text-[10px] uppercase tracking-[0.28em] text-muted/80">
             {place === 1 ? "1er" : place === 2 ? "2e" : "3e"}
           </span>
         </div>

@@ -1,46 +1,150 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bg: #060a12;
-  --color-bg-elevated: #0c1220;
-  --color-surface: #121a2e;
-  --color-surface-hover: #1a2540;
-  --color-gold: #d4af37;
+  --color-bg: #04070f;
+  --color-bg-deep: #02040a;
+  --color-bg-elevated: #0a101d;
+  --color-surface: #0f1728;
+  --color-surface-hover: #1b2846;
+  --color-gold: #d4af37; /* pivot du theming [data-site-theme] — ne pas coder l'or en dur ailleurs */
   --color-gold-light: #f0e6b8;
   --color-gold-dim: #8b7324;
   --color-accent: #3b82f6;
-  --color-muted: #8b9cb8;
+  --color-muted: #8fa3bf;
+  --color-win: #34d399;
+  --color-loss: #f87171;
   --font-display: "Cinzel", Georgia, serif;
   --font-sans: "DM Sans", system-ui, sans-serif;
+  --font-condensed: "Barlow Condensed", "Arial Narrow", "DM Sans", sans-serif;
 }
 
 @layer base {
+  /* Tokens dérivés — tout accent doré passe par ces alias pour suivre
+     le sélecteur d'accent ([data-site-theme]) et les tier-accents. */
+  :root {
+    --gold-05: color-mix(in srgb, var(--color-gold) 5%, transparent);
+    --gold-10: color-mix(in srgb, var(--color-gold) 10%, transparent);
+    --gold-15: color-mix(in srgb, var(--color-gold) 15%, transparent);
+    --gold-25: color-mix(in srgb, var(--color-gold) 25%, transparent);
+    --gold-40: color-mix(in srgb, var(--color-gold) 40%, transparent);
+    --gold-60: color-mix(in srgb, var(--color-gold) 60%, transparent);
+    --line: rgba(148, 163, 184, 0.1);
+    --line-strong: rgba(148, 163, 184, 0.18);
+    --edge-light: rgba(255, 255, 255, 0.05);
+    --hairline-gold: linear-gradient(
+      90deg,
+      transparent 3%,
+      var(--gold-60) 50%,
+      transparent 97%
+    );
+    --shadow-rest:
+      0 1px 0 var(--edge-light) inset, 0 6px 16px -10px rgba(0, 0, 0, 0.6),
+      0 24px 50px -28px rgba(0, 0, 0, 0.85);
+    --shadow-float:
+      0 1px 0 rgba(255, 255, 255, 0.08) inset,
+      0 14px 28px -14px rgba(0, 0, 0, 0.65),
+      0 42px 80px -34px rgba(0, 0, 0, 0.9), 0 0 42px -14px var(--gold-25);
+    --shadow-gem: 0 0 18px -4px var(--gold-60);
+    --ease-lux: cubic-bezier(0.22, 1, 0.36, 1);
+    --dur-fast: 160ms;
+    --dur-med: 320ms;
+    --dur-slow: 600ms;
+  }
+
+  /* Coupe les débordements horizontaux (tooltips absolus, animations en vol)
+     sans créer de conteneur de scroll — clip ne casse pas la nav sticky. */
+  html,
+  body {
+    overflow-x: clip;
+  }
+
   body {
     @apply bg-bg text-white font-sans antialiased min-h-screen;
     background-color: var(--color-bg);
     background-image:
-      linear-gradient(rgba(212, 175, 55, 0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(212, 175, 55, 0.04) 1px, transparent 1px),
-      radial-gradient(ellipse 100% 70% at 50% -20%, rgba(212, 175, 55, 0.18), transparent 50%),
-      radial-gradient(ellipse 45% 50% at 0% 90%, rgba(59, 130, 246, 0.1), transparent 55%),
-      radial-gradient(ellipse 40% 45% at 100% 15%, rgba(139, 92, 246, 0.08), transparent 50%);
-    background-size:
-      56px 56px,
-      56px 56px,
-      auto,
-      auto,
-      auto;
-    background-attachment: fixed;
+      radial-gradient(ellipse 90% 55% at 50% -12%, var(--gold-10), transparent 55%),
+      radial-gradient(ellipse 50% 42% at 100% 18%, rgba(59, 130, 246, 0.05), transparent 60%),
+      radial-gradient(ellipse 55% 45% at 0% 95%, rgba(59, 130, 246, 0.04), transparent 60%);
+  }
+
+  /* Trame hexagonale — SVG en masque, fond var(--color-gold) : suit l'accent */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background: linear-gradient(180deg, var(--color-gold) 0%, transparent 78%);
+    opacity: 0.05;
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='97'%3E%3Cpath d='M28 2 54 17v30L28 62 2 47V17Zm0 60 26 15v18M28 62 2 77v18' fill='none' stroke='%23000' stroke-width='1'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='97'%3E%3Cpath d='M28 2 54 17v30L28 62 2 47V17Zm0 60 26 15v18M28 62 2 77v18' fill='none' stroke='%23000' stroke-width='1'/%3E%3C/svg%3E");
+    -webkit-mask-size: 56px 97px;
+    mask-size: 56px 97px;
+  }
+
+  /* Vignette de scène — enfonce les bords */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: radial-gradient(
+      ellipse 130% 95% at 50% 10%,
+      transparent 55%,
+      rgba(2, 4, 10, 0.55) 100%
+    );
   }
 
   ::selection {
-    @apply bg-gold/30 text-gold-light;
+    background: var(--gold-25);
+    color: var(--color-gold-light);
+  }
+
+  /* Scrollbar forgée */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-bg);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #1b2846;
+    border: 2px solid var(--color-bg);
+    border-radius: 8px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in srgb, var(--color-gold) 30%, #1b2846);
+  }
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: #1b2846 var(--color-bg);
+  }
+
+  /* Focus clavier global */
+  :focus-visible {
+    outline: 2px solid var(--gold-60);
+    outline-offset: 2px;
   }
 }
 
 @layer components {
   .font-display {
     font-family: var(--font-display);
+  }
+
+  /* Chiffres de données : tabulaires, jamais en Cinzel */
+  .text-metric {
+    font-family: var(--font-sans);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+
+  .label-condensed {
+    font-family: var(--font-condensed);
+    font-weight: 500;
   }
 
   .page-shell {
@@ -75,18 +179,21 @@
     }
 
     .ad-panel-inner {
-      @apply rounded-xl border border-white/[0.08] overflow-hidden;
+      @apply rounded-xl border overflow-hidden;
+      border-color: var(--line);
       background: linear-gradient(
         180deg,
-        rgba(18, 26, 46, 0.92) 0%,
-        rgba(12, 18, 32, 0.96) 100%
+        rgba(15, 23, 40, 0.92) 0%,
+        rgba(8, 13, 26, 0.96) 100%
       );
       min-height: 600px;
       width: 160px;
     }
 
     .ad-panel-label {
-      @apply block text-center text-[10px] uppercase tracking-[0.2em] text-muted/60 py-2 border-b border-white/[0.06];
+      @apply block text-center text-[10px] uppercase tracking-[0.2em] text-muted/60 py-2 border-b;
+      border-color: var(--line);
+      font-family: var(--font-condensed);
     }
 
     .ad-panel-slot {
@@ -100,90 +207,247 @@
     }
   }
 
+  /* ============ HÉROS DE PAGE ============ */
   .page-hero {
     @apply relative mb-12 text-center overflow-hidden;
   }
 
+  /* Faisceau net qui tombe sur le titre */
   .page-hero-orb {
-    @apply absolute left-1/2 top-0 -translate-x-1/2 w-[min(480px,90vw)] h-32 pointer-events-none opacity-60;
-    background: radial-gradient(
-      ellipse at center,
-      rgba(212, 175, 55, 0.35) 0%,
-      transparent 70%
-    );
-    filter: blur(24px);
+    @apply absolute left-1/2 top-0 -translate-x-1/2 pointer-events-none;
+    width: min(560px, 92vw);
+    height: 160px;
+    opacity: 0.5;
+    background:
+      radial-gradient(ellipse 60% 100% at 50% 0%, var(--gold-25), transparent 70%),
+      conic-gradient(
+        from 180deg at 50% 0%,
+        transparent 43%,
+        var(--gold-10) 50%,
+        transparent 57%
+      );
+    -webkit-mask-image: linear-gradient(to bottom, #000 25%, transparent 95%);
+    mask-image: linear-gradient(to bottom, #000 25%, transparent 95%);
   }
 
   .page-hero::before {
     content: "";
-    @apply absolute left-1/2 top-0 -translate-x-1/2 w-px h-10 z-[1];
+    @apply absolute left-1/2 top-0 -translate-x-1/2 w-px h-12 z-[1];
     background: linear-gradient(to bottom, transparent, var(--color-gold), transparent);
+    filter: drop-shadow(0 0 8px var(--gold-60));
   }
 
+  /* Eyebrow : titre d'écusson à ailes de filigrane */
   .page-eyebrow {
-    @apply inline-block text-[11px] uppercase tracking-[0.4em] text-gold/80 mb-4
-      px-4 py-1 rounded-full border border-gold/25 bg-gold/5;
+    @apply relative z-[1] inline-flex items-center gap-3 mb-5;
+    font-family: var(--font-condensed);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--color-gold) 85%, white);
   }
 
+  .page-eyebrow::before,
+  .page-eyebrow::after {
+    content: "";
+    width: clamp(28px, 8vw, 64px);
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold-60));
+  }
+
+  .page-eyebrow::after {
+    transform: scaleX(-1);
+  }
+
+  /* Titre : métal vertical, halo en drop-shadow */
   .page-title {
-    @apply relative z-[1] font-display text-4xl sm:text-5xl lg:text-6xl text-transparent bg-clip-text mb-3 tracking-tight;
+    @apply relative z-[1] font-display font-bold text-4xl sm:text-5xl lg:text-6xl text-transparent bg-clip-text mb-3;
+    letter-spacing: 0.015em;
     background-image: linear-gradient(
-      135deg,
-      var(--color-gold-light) 0%,
-      var(--color-gold) 40%,
-      #fff8e0 55%,
-      var(--color-gold-dim) 100%
+      180deg,
+      color-mix(in srgb, var(--color-gold-light) 40%, white) 0%,
+      var(--color-gold-light) 34%,
+      var(--color-gold) 68%,
+      var(--color-gold-dim) 108%
     );
-    text-shadow: 0 0 80px rgba(212, 175, 55, 0.15);
+    filter: drop-shadow(0 2px 18px var(--gold-25));
   }
 
   .section-header {
     @apply flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 mb-4;
   }
 
-  .quick-link-card {
-    @apply flex items-center gap-3 rounded-2xl border border-gold/15 px-5 py-4 transition-all duration-300;
-    background: linear-gradient(
-      135deg,
-      rgba(18, 26, 46, 0.85) 0%,
-      rgba(12, 18, 32, 0.95) 100%
-    );
-    box-shadow: 0 8px 32px -12px rgba(0, 0, 0, 0.5);
+  /* ============ ÉTAGE « CARTE » ============ */
+  .card,
+  .duel-card,
+  .quick-link-card,
+  .empty-state {
+    @apply relative rounded-xl border;
+    border-color: rgba(148, 163, 184, 0.12);
+    border-color: color-mix(in srgb, var(--color-gold) 14%, rgba(148, 163, 184, 0.1));
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 26%),
+      radial-gradient(120% 70% at 50% 115%, var(--gold-05), transparent 60%),
+      linear-gradient(168deg, #101a2e 0%, #0a1120 100%);
+    box-shadow: var(--shadow-rest);
   }
 
-  .quick-link-card:hover {
-    @apply border-gold/35 -translate-y-0.5;
-    box-shadow: 0 16px 40px -12px rgba(212, 175, 55, 0.2);
+  .card {
+    @apply p-6;
+  }
+
+  .duel-card {
+    @apply p-5 overflow-hidden;
+  }
+
+  .quick-link-card {
+    @apply flex items-center gap-3 px-5 py-4;
+  }
+
+  .empty-state {
+    @apply overflow-hidden px-6 py-10 text-center;
+  }
+
+  /* Hover unifié : levée 2px + bordure qui s'allume (cliquables uniquement) */
+  .quick-link-card,
+  .duel-card,
+  .podium-card,
+  .potw-banner {
+    transition:
+      transform var(--dur-med) var(--ease-lux),
+      border-color var(--dur-med) var(--ease-lux),
+      box-shadow var(--dur-med) var(--ease-lux);
+  }
+
+  .quick-link-card:hover,
+  .duel-card:hover,
+  .podium-card:hover,
+  .potw-banner:hover {
+    transform: translateY(-2px);
+    border-color: var(--gold-40);
+    box-shadow: var(--shadow-float);
   }
 
   .quick-link-icon {
-    @apply flex h-11 w-11 items-center justify-center rounded-xl text-xl;
-    background: rgba(212, 175, 55, 0.12);
-    border: 1px solid rgba(212, 175, 55, 0.2);
+    @apply flex h-11 w-11 items-center justify-center rounded-lg text-xl;
+    background: var(--gold-10);
+    border: 1px solid var(--gold-25);
+    box-shadow: 0 0 16px -6px var(--gold-25);
   }
 
+  /* ============ ÉTAGE « RELIQUE » ============ */
+  .card-glow {
+    @apply relative overflow-hidden rounded-xl border p-6;
+    border-color: rgba(148, 163, 184, 0.12);
+    border-color: color-mix(in srgb, var(--color-gold) 18%, rgba(148, 163, 184, 0.1));
+    background:
+      radial-gradient(ellipse 60% 45% at 50% -10%, var(--gold-10), transparent 70%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 26%),
+      linear-gradient(168deg, #101a2e 0%, #0a1120 100%);
+    box-shadow: var(--shadow-rest);
+  }
+
+  /* Hairline d'or en arête haute */
+  .card-glow::before {
+    content: "";
+    position: absolute;
+    left: 8%;
+    right: 8%;
+    top: 0;
+    height: 1px;
+    pointer-events: none;
+    background: var(--hairline-gold);
+  }
+
+  /* Filigrane de coins */
+  .card-glow::after {
+    content: "";
+    position: absolute;
+    inset: 7px;
+    pointer-events: none;
+    opacity: 0.45;
+    background:
+      linear-gradient(var(--color-gold), var(--color-gold)) left 0 top 0 / 14px 1px,
+      linear-gradient(var(--color-gold), var(--color-gold)) left 0 top 0 / 1px 14px,
+      linear-gradient(var(--color-gold), var(--color-gold)) right 0 top 0 / 14px 1px,
+      linear-gradient(var(--color-gold), var(--color-gold)) right 0 top 0 / 1px 14px,
+      linear-gradient(var(--color-gold), var(--color-gold)) left 0 bottom 0 / 14px 1px,
+      linear-gradient(var(--color-gold), var(--color-gold)) left 0 bottom 0 / 1px 14px,
+      linear-gradient(var(--color-gold), var(--color-gold)) right 0 bottom 0 / 14px 1px,
+      linear-gradient(var(--color-gold), var(--color-gold)) right 0 bottom 0 / 1px 14px;
+    background-repeat: no-repeat;
+  }
+
+  /* ============ JOUEUR DE LA SEMAINE ============ */
   .potw-banner {
-    @apply relative overflow-hidden rounded-2xl border border-gold/25 p-6 sm:p-8 transition-all duration-300;
-    background: linear-gradient(
-      125deg,
-      rgba(212, 175, 55, 0.12) 0%,
-      rgba(18, 26, 46, 0.95) 40%,
-      rgba(12, 18, 32, 0.98) 100%
-    );
-    box-shadow:
-      0 0 0 1px rgba(255, 255, 255, 0.04) inset,
-      0 20px 50px -20px rgba(212, 175, 55, 0.15);
-  }
-
-  .potw-banner:hover {
-    @apply border-gold/45 -translate-y-0.5;
-    box-shadow: 0 24px 60px -20px rgba(212, 175, 55, 0.25);
+    @apply relative overflow-hidden rounded-xl border p-6 sm:p-8;
+    border-color: var(--gold-25);
+    background:
+      radial-gradient(ellipse 70% 90% at 12% 0%, var(--gold-10), transparent 55%),
+      linear-gradient(168deg, #101a2e 0%, #0a1120 100%);
+    box-shadow: var(--shadow-rest), 0 0 60px -20px var(--gold-40);
   }
 
   .potw-label {
-    @apply text-[10px] uppercase tracking-[0.35em] text-gold/90 mb-2;
+    @apply mb-2 text-[10px];
+    font-family: var(--font-condensed);
+    font-weight: 500;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--color-gold) 90%, white);
   }
 
+  .potw-crown {
+    filter: drop-shadow(0 0 10px var(--gold-60));
+    animation: potw-crown-float 3.4s ease-in-out infinite;
+  }
+
+  @keyframes potw-crown-float {
+    0%,
+    100% {
+      transform: translateY(0) rotate(-5deg);
+    }
+    50% {
+      transform: translateY(-3px) rotate(5deg);
+    }
+  }
+
+  .potw-shimmer::before {
+    content: "";
+    @apply pointer-events-none absolute inset-0 rounded-xl;
+    padding: 1px;
+    background: linear-gradient(
+      120deg,
+      var(--gold-60),
+      color-mix(in srgb, var(--color-win) 50%, transparent),
+      var(--gold-60)
+    );
+    background-size: 220% 100%;
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: potw-border-pan 7s linear infinite;
+    opacity: 0.75;
+  }
+
+  @keyframes potw-border-pan {
+    to {
+      background-position: 220% 0;
+    }
+  }
+
+  .potw-lp-glow {
+    background: radial-gradient(
+      ellipse at center,
+      color-mix(in srgb, var(--color-win) 28%, transparent),
+      transparent 70%
+    );
+  }
+
+  /* ============ TITRES (badges + tooltip) ============ */
   .title-badge-wrap {
     @apply relative inline-flex max-w-full;
   }
@@ -198,19 +462,24 @@
   }
 
   .title-tooltip {
-    @apply absolute bottom-[calc(100%+6px)] left-1/2 z-50 w-max max-w-[220px] -translate-x-1/2 translate-y-1 px-2.5 py-1.5 text-[11px] font-normal leading-snug text-white/95 rounded-lg border border-gold/25 opacity-0 invisible pointer-events-none transition-all duration-150;
-    background: rgba(12, 18, 32, 0.98);
-    box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.7);
+    @apply absolute bottom-[calc(100%+6px)] left-1/2 z-50 w-max max-w-[220px] -translate-x-1/2 translate-y-1 px-2.5 py-1.5 text-[11px] font-normal leading-snug text-white/95 rounded-lg border opacity-0 invisible pointer-events-none transition-all duration-150;
+    border-color: var(--gold-25);
+    background: rgba(8, 12, 22, 0.97);
+    box-shadow:
+      0 12px 32px -8px rgba(0, 0, 0, 0.8),
+      0 0 20px -10px var(--gold-15);
   }
 
   .title-tooltip::after {
     content: "";
     @apply absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent;
-    border-top-color: rgba(12, 18, 32, 0.98);
+    border-top-color: rgba(8, 12, 22, 0.97);
   }
 
   .title-badge-gold {
-    @apply border-gold/35 text-gold-light bg-gold/10;
+    @apply text-gold-light;
+    border-color: var(--gold-40);
+    background: var(--gold-10);
   }
 
   .title-badge-emerald {
@@ -230,33 +499,40 @@
   }
 
   .title-showcase-card {
-    @apply block rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 transition-all duration-200 hover:border-gold/25 hover:bg-gold/[0.03];
+    @apply block rounded-xl border px-4 py-3 transition-all duration-200;
+    border-color: var(--line);
+    background: rgba(255, 255, 255, 0.02);
   }
 
-  .duel-card {
-    @apply rounded-2xl border border-gold/15 p-5 relative overflow-hidden;
-    background: linear-gradient(
-      160deg,
-      rgba(18, 26, 46, 0.95) 0%,
-      rgba(12, 18, 32, 0.98) 100%
-    );
-    box-shadow: 0 12px 40px -16px rgba(0, 0, 0, 0.6);
+  .title-showcase-card:hover {
+    border-color: var(--gold-25);
+    background: var(--gold-05);
   }
 
+  /* ============ DUELS ============ */
   .duel-card-finished {
-    @apply border-white/10 opacity-90;
+    @apply opacity-90;
+    border-color: var(--line);
   }
 
   .duel-card-header {
-    @apply flex items-center justify-between mb-4 pb-3 border-b border-white/[0.06];
+    @apply flex items-center justify-between mb-4 pb-3 border-b;
+    border-color: var(--line);
   }
 
   .duel-vs {
-    @apply font-display text-lg text-gold/80 tracking-widest;
+    @apply font-display text-lg tracking-widest;
+    color: color-mix(in srgb, var(--color-gold) 80%, transparent);
   }
 
   .duel-timer {
-    @apply text-xs text-muted uppercase tracking-wider px-2 py-1 rounded-full border border-white/10 bg-white/5;
+    @apply text-xs px-2 py-1 rounded-full border;
+    font-family: var(--font-condensed);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+    border-color: var(--line);
+    background: rgba(2, 4, 10, 0.5);
   }
 
   .duel-fighters {
@@ -264,156 +540,268 @@
   }
 
   .duel-fighter {
-    @apply rounded-xl border border-white/[0.06] p-3 transition-all duration-200 hover:border-gold/25;
-    background: rgba(0, 0, 0, 0.2);
+    @apply rounded-lg border p-3;
+    border-color: rgba(255, 255, 255, 0.06);
+    background: rgba(2, 4, 10, 0.35);
+    transition:
+      border-color var(--dur-fast) ease,
+      box-shadow var(--dur-fast) ease;
+  }
+
+  .duel-fighter:hover {
+    border-color: var(--gold-25);
   }
 
   .duel-fighter-lead {
-    @apply border-emerald-500/30 bg-emerald-500/[0.06];
-    box-shadow: 0 0 24px -8px rgba(52, 211, 153, 0.25);
+    border-color: color-mix(in srgb, var(--color-win) 35%, transparent);
+    background: color-mix(in srgb, var(--color-win) 6%, transparent);
+    box-shadow:
+      inset 2px 0 0 var(--color-win),
+      0 0 24px -8px color-mix(in srgb, var(--color-win) 30%, transparent);
   }
 
   .duel-fighter-won {
-    @apply border-gold/40 bg-gold/[0.08];
+    border-color: var(--gold-40);
+    background: var(--gold-10);
+    box-shadow:
+      inset 2px 0 0 var(--color-gold),
+      0 0 24px -8px var(--gold-40);
   }
 
   .duel-winner-pill {
     @apply inline-block mt-2 text-[10px] uppercase tracking-wider text-gold font-semibold;
+    font-family: var(--font-condensed);
   }
 
-  .card {
-    @apply rounded-2xl border border-gold/12 p-6;
-    background: linear-gradient(
-      165deg,
-      rgba(18, 26, 46, 0.95) 0%,
-      rgba(12, 18, 32, 0.98) 100%
-    );
-    box-shadow:
-      0 0 0 1px rgba(255, 255, 255, 0.03) inset,
-      0 20px 50px -20px rgba(0, 0, 0, 0.6);
-  }
-
-  .card-glow {
-    @apply relative overflow-hidden rounded-2xl border border-gold/12 p-6;
-    background: linear-gradient(
-      165deg,
-      rgba(18, 26, 46, 0.95) 0%,
-      rgba(12, 18, 32, 0.98) 100%
-    );
-    box-shadow:
-      0 0 0 1px rgba(255, 255, 255, 0.03) inset,
-      0 20px 50px -20px rgba(0, 0, 0, 0.6);
-  }
-
-  .card-glow::before {
-    content: "";
-    @apply pointer-events-none absolute inset-0 rounded-2xl opacity-[0.4];
-    background: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.04) 0%,
-      transparent 40%,
-      transparent 100%
-    );
-  }
-
-  .card-glow::after {
-    content: "";
-    @apply pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-72 h-36 rounded-full opacity-50;
-    background: radial-gradient(circle, rgba(212, 175, 55, 0.2), transparent 70%);
-  }
-
+  /* ============ FORMULAIRES / BOUTONS ============ */
   .label {
     @apply block text-sm text-muted mb-1.5;
   }
 
   .input {
-    @apply w-full rounded-xl border border-white/8 bg-bg/80 px-3 py-2.5 text-white
-      placeholder:text-muted/50 transition
-      focus:border-gold/40 focus:outline-none focus:ring-2 focus:ring-gold/20;
+    @apply w-full rounded-lg border px-3 py-2.5 text-white placeholder:text-muted/50;
+    border-color: var(--line-strong);
+    background: rgba(2, 5, 12, 0.6);
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.45);
+    transition:
+      border-color var(--dur-fast) ease,
+      box-shadow var(--dur-fast) ease;
   }
 
+  .input:focus {
+    outline: none;
+    border-color: var(--gold-60);
+    box-shadow:
+      inset 0 2px 6px rgba(0, 0, 0, 0.45),
+      0 0 0 3px var(--gold-15),
+      0 0 14px -4px var(--gold-40);
+  }
+
+  /* Or forgé : sheen haut, assise sombre, liseré, balayage de reflet au hover */
   .btn-primary {
-    @apply rounded-xl px-5 py-2.5 text-sm font-semibold text-bg transition-all duration-200;
-    background: linear-gradient(135deg, var(--color-gold-light), var(--color-gold));
-    box-shadow: 0 4px 20px -4px rgba(212, 175, 55, 0.5);
+    @apply relative overflow-hidden rounded-lg px-5 py-2.5 text-sm font-semibold text-bg;
+    background: linear-gradient(
+      180deg,
+      var(--color-gold-light) 0%,
+      var(--color-gold) 48%,
+      var(--color-gold-dim) 130%
+    );
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.5),
+      inset 0 -2px 5px color-mix(in srgb, var(--color-gold-dim) 60%, transparent),
+      0 0 0 1px color-mix(in srgb, var(--color-gold-dim) 80%, transparent),
+      0 6px 22px -8px var(--gold-60);
+    transition:
+      transform var(--dur-fast) var(--ease-lux),
+      box-shadow var(--dur-fast) var(--ease-lux);
+  }
+
+  .btn-primary::after {
+    content: "";
+    position: absolute;
+    top: -30%;
+    bottom: -30%;
+    left: -55%;
+    width: 38%;
+    transform: skewX(-20deg);
+    opacity: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.5),
+      transparent
+    );
   }
 
   .btn-primary:hover:not(:disabled) {
-    @apply -translate-y-0.5;
-    box-shadow: 0 8px 28px -4px rgba(212, 175, 55, 0.55);
+    transform: translateY(-1px);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.5),
+      0 0 0 1px color-mix(in srgb, var(--color-gold-dim) 80%, transparent),
+      0 10px 28px -8px var(--gold-60);
+  }
+
+  .btn-primary:hover:not(:disabled)::after {
+    animation: btn-sheen 0.65s var(--ease-lux);
+  }
+
+  .btn-primary:active:not(:disabled) {
+    transform: translateY(0);
   }
 
   .btn-primary:disabled {
     @apply opacity-50 cursor-not-allowed;
   }
 
+  @keyframes btn-sheen {
+    from {
+      transform: skewX(-20deg) translateX(0);
+      opacity: 0.85;
+    }
+    to {
+      transform: skewX(-20deg) translateX(460%);
+      opacity: 0;
+    }
+  }
+
+  /* ============ NAVIGATION ============ */
   .nav-bar {
-    @apply sticky top-0 z-50 border-b border-gold/15;
-    background: rgba(6, 10, 18, 0.88);
-    backdrop-filter: blur(20px) saturate(1.2);
-    box-shadow: 0 4px 30px -10px rgba(0, 0, 0, 0.5);
+    @apply sticky top-0 z-50;
+    background: linear-gradient(
+      180deg,
+      rgba(4, 7, 15, 0.94) 0%,
+      rgba(8, 13, 26, 0.86) 100%
+    );
+    backdrop-filter: blur(12px) saturate(1.3);
+    border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+    border-bottom-color: color-mix(in srgb, var(--color-gold) 16%, transparent);
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.04) inset,
+      0 16px 40px -20px rgba(0, 0, 0, 0.9);
+  }
+
+  /* Fil de lumière qui s'évanouit aux bords */
+  .nav-bar::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 1px;
+    pointer-events: none;
+    background: var(--hairline-gold);
+    opacity: 0.8;
   }
 
   .nav-link {
-    @apply relative text-sm text-muted transition-colors duration-200 hover:text-gold-light;
+    @apply relative rounded-lg;
+    font-family: var(--font-condensed);
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+    transition:
+      color var(--dur-fast) ease,
+      background var(--dur-fast) ease;
+  }
+
+  .nav-link:hover {
+    color: var(--color-gold-light);
+    background: rgba(255, 255, 255, 0.045);
   }
 
   .nav-link-active {
-    @apply text-gold-light;
+    color: var(--color-gold-light);
+    background: linear-gradient(180deg, var(--gold-10), transparent);
   }
 
-  .nav-logo-mark {
-    box-shadow: 0 0 20px -6px rgba(212, 175, 55, 0.35);
-  }
-
+  /* Gemme-losange sous le lien actif */
   .nav-link-active::after {
     content: "";
-    @apply absolute -bottom-1 left-0 right-0 h-px;
-    background: linear-gradient(90deg, transparent, var(--color-gold), transparent);
+    position: absolute;
+    left: 50%;
+    bottom: 1px;
+    width: 5px;
+    height: 5px;
+    transform: translateX(-50%) rotate(45deg);
+    background: var(--color-gold);
+    box-shadow: 0 0 8px 1px var(--gold-60);
+    animation: gem-pulse 2.6s ease-in-out infinite;
   }
 
+  /* Écrin du logo */
+  .nav-logo-mark {
+    @apply inline-flex rounded-lg p-[2px];
+    background: linear-gradient(160deg, var(--gold-40), var(--gold-10) 60%);
+    box-shadow: 0 0 20px -6px var(--gold-40);
+  }
+
+  @keyframes gem-pulse {
+    0%,
+    100% {
+      box-shadow: 0 0 6px 0 var(--gold-60);
+    }
+    50% {
+      box-shadow: 0 0 14px 2px color-mix(in srgb, var(--color-gold) 85%, transparent);
+    }
+  }
+
+  /* ============ ÉTAGE « PANNEAU » + ONGLETS ============ */
   .leaderboard-panel {
-    @apply rounded-2xl border border-gold/10 p-4 sm:p-5 mb-8;
+    @apply rounded-xl border p-4 sm:p-5 mb-8;
+    border-color: rgba(148, 163, 184, 0.08);
     background: linear-gradient(
       180deg,
-      rgba(18, 26, 46, 0.6) 0%,
-      rgba(12, 18, 32, 0.4) 100%
+      rgba(15, 23, 40, 0.5) 0%,
+      rgba(8, 13, 26, 0.35) 100%
     );
   }
 
   .leaderboard-tab {
-    @apply rounded-xl border border-white/8 px-4 py-2.5 text-sm font-medium
-      text-muted transition-all duration-300 ease-out
-      hover:border-gold/25 hover:text-white hover:bg-white/5;
+    @apply relative rounded-lg border px-4 py-2.5 text-sm font-medium text-muted;
+    border-color: var(--line);
+    font-family: var(--font-condensed);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition:
+      border-color var(--dur-med) var(--ease-lux),
+      color var(--dur-med) var(--ease-lux),
+      background var(--dur-med) var(--ease-lux),
+      box-shadow var(--dur-med) var(--ease-lux);
+  }
+
+  .leaderboard-tab:hover {
+    border-color: var(--gold-25);
+    color: #fff;
+    background: rgba(255, 255, 255, 0.04);
   }
 
   .leaderboard-tab-active {
-    @apply border-gold/40 text-gold-light scale-[1.02];
-    background: linear-gradient(
-      180deg,
-      rgba(212, 175, 55, 0.18) 0%,
-      rgba(212, 175, 55, 0.06) 100%
-    );
-    box-shadow: 0 0 20px -8px rgba(212, 175, 55, 0.4);
+    border-color: var(--gold-60);
+    color: var(--color-gold-light);
+    background: linear-gradient(180deg, var(--gold-15) 0%, var(--gold-05) 100%);
+    box-shadow:
+      inset 0 1px 0 var(--gold-25),
+      var(--shadow-gem);
   }
 
+  /* Gemme sous l'onglet actif */
   .leaderboard-tab-active::after {
     content: "";
-    @apply absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 w-[70%] rounded-full bg-gold;
-    animation: tab-underline-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+    position: absolute;
+    left: 50%;
+    bottom: -3.5px;
+    width: 7px;
+    height: 7px;
+    transform: translateX(-50%) rotate(45deg);
+    border-radius: 1px;
+    background: linear-gradient(135deg, var(--color-gold-light), var(--color-gold-dim));
+    box-shadow: 0 0 8px 1px var(--gold-60);
+    animation: gem-pulse 2.6s ease-in-out infinite;
   }
 
-  @keyframes tab-underline-in {
-    from {
-      opacity: 0;
-      transform: translateX(-50%) scaleX(0.3);
-    }
-    to {
-      opacity: 1;
-      transform: translateX(-50%) scaleX(1);
-    }
-  }
-
+  /* ============ SKELETONS ============ */
   .skeleton {
     @apply rounded-lg bg-white/[0.06] relative overflow-hidden;
   }
@@ -424,7 +812,8 @@
     background: linear-gradient(
       90deg,
       transparent 0%,
-      rgba(255, 255, 255, 0.06) 50%,
+      var(--gold-05) 40%,
+      rgba(255, 255, 255, 0.05) 50%,
       transparent 100%
     );
     animation: skeleton-shimmer 1.4s ease-in-out infinite;
@@ -439,27 +828,31 @@
     }
   }
 
+  /* ============ PROFIL ============ */
   .profile-banner {
     box-shadow:
-      0 0 0 1px rgba(255, 255, 255, 0.04) inset,
-      0 24px 60px -24px rgba(0, 0, 0, 0.6);
+      0 1px 0 var(--edge-light) inset,
+      0 24px 60px -24px rgba(0, 0, 0, 0.7);
   }
 
   .stat-tile {
     @apply transition-colors duration-200 hover:border-white/15;
   }
 
+  /* ============ LIGNES DE MATCH ============ */
   .match-row-opgg {
     @apply relative flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-4
-      rounded-lg overflow-hidden cursor-pointer transition-all duration-200;
-    background: rgba(12, 18, 32, 0.85);
+      rounded-lg overflow-hidden cursor-pointer;
+    background: rgba(10, 16, 29, 0.85);
     border: 1px solid rgba(255, 255, 255, 0.06);
+    transition:
+      border-color var(--dur-fast) ease,
+      background var(--dur-fast) ease;
   }
 
   .match-row-opgg:hover {
-    @apply border-gold/25;
-    background: rgba(18, 26, 46, 0.95);
-    transform: translateX(2px);
+    border-color: var(--gold-25);
+    background: rgba(20, 29, 50, 0.95);
   }
 
   .match-row-opgg__accent {
@@ -467,26 +860,26 @@
   }
 
   .match-row-opgg--win .match-row-opgg__accent {
-    background: linear-gradient(180deg, #34d399, #059669);
+    background: linear-gradient(180deg, var(--color-win), #059669);
   }
 
   .match-row-opgg--loss .match-row-opgg__accent {
-    background: linear-gradient(180deg, #f87171, #b91c1c);
+    background: linear-gradient(180deg, var(--color-loss), #b91c1c);
   }
 
   .match-row-opgg--win {
     background: linear-gradient(
       90deg,
-      rgba(52, 211, 153, 0.08) 0%,
-      rgba(12, 18, 32, 0.9) 28%
+      color-mix(in srgb, var(--color-win) 8%, transparent) 0%,
+      rgba(10, 16, 29, 0.9) 28%
     );
   }
 
   .match-row-opgg--loss {
     background: linear-gradient(
       90deg,
-      rgba(248, 113, 113, 0.08) 0%,
-      rgba(12, 18, 32, 0.9) 28%
+      color-mix(in srgb, var(--color-loss) 8%, transparent) 0%,
+      rgba(10, 16, 29, 0.9) 28%
     );
   }
 
@@ -511,110 +904,193 @@
   }
 
   .sync-pill {
-    @apply inline-flex items-center gap-2 rounded-full border border-white/8
-      bg-bg/50 px-3 py-1 text-xs text-muted;
+    @apply inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs;
+    font-family: var(--font-condensed);
+    letter-spacing: 0.04em;
+    color: var(--color-muted);
+    border-color: var(--line);
+    background: rgba(2, 4, 10, 0.5);
   }
 
+  /* ============ PODIUM ============ */
   .podium-card {
-    @apply relative rounded-2xl border px-4 pt-5 pb-3 text-center transition-all duration-300;
-    background: linear-gradient(
-      180deg,
-      rgba(18, 26, 46, 0.9) 0%,
-      rgba(12, 18, 32, 0.95) 100%
-    );
-  }
-
-  .podium-card:hover {
-    @apply -translate-y-1 border-gold/30;
-    box-shadow: 0 12px 40px -16px rgba(212, 175, 55, 0.2);
+    @apply relative rounded-xl border px-4 pt-5 pb-3 text-center;
+    border-color: rgba(148, 163, 184, 0.12);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 22%),
+      linear-gradient(180deg, #101a2e 0%, #0a1120 100%);
+    box-shadow: var(--shadow-rest);
   }
 
   .podium-first {
-    @apply border-gold/35;
-    box-shadow: 0 0 40px -12px rgba(212, 175, 55, 0.35);
+    border-color: var(--gold-40);
+    box-shadow:
+      0 0 0 1px var(--gold-15),
+      0 0 60px -12px var(--gold-40),
+      var(--shadow-rest);
+  }
+
+  /* Rai de lumière tombant du zénith sur le n°1 */
+  .podium-first::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: -40px;
+    width: 120px;
+    height: 60px;
+    transform: translateX(-50%);
+    pointer-events: none;
+    background: radial-gradient(ellipse at top, var(--gold-25), transparent 70%);
+    filter: blur(10px);
   }
 
   .podium-pillar {
-    @apply mt-4 w-full rounded-t-xl border-x border-t border-gold/10 flex items-end justify-center pb-2;
-    background: linear-gradient(
-      to top,
-      rgba(18, 26, 46, 0.95),
-      rgba(212, 175, 55, 0.08)
-    );
+    @apply mt-4 w-full flex items-end justify-center pb-2 border-x border-t;
+    border-radius: 6px 6px 0 0;
+    border-color: var(--gold-15);
+    background:
+      repeating-linear-gradient(
+        90deg,
+        transparent 0 11px,
+        rgba(255, 255, 255, 0.025) 11px 12px
+      ),
+      linear-gradient(to top, rgba(10, 17, 32, 0.95), var(--gold-10));
   }
 
   .podium-pillar-gold {
-    background: linear-gradient(
-      to top,
-      rgba(18, 26, 46, 0.95),
-      rgba(212, 175, 55, 0.2)
-    );
+    background:
+      repeating-linear-gradient(
+        90deg,
+        transparent 0 11px,
+        rgba(255, 255, 255, 0.03) 11px 12px
+      ),
+      linear-gradient(to top, rgba(10, 17, 32, 0.95), var(--gold-25));
+    box-shadow: 0 -16px 32px -20px var(--gold-60);
   }
 
+  /* ============ TABLEAUX ============ */
   .table-shell {
-    @apply rounded-2xl border border-gold/12 overflow-x-auto overflow-y-visible;
+    @apply rounded-xl border overflow-x-auto overflow-y-visible;
+    border-color: rgba(148, 163, 184, 0.12);
+    border-color: color-mix(in srgb, var(--color-gold) 14%, rgba(148, 163, 184, 0.1));
     background: linear-gradient(
-      165deg,
-      rgba(18, 26, 46, 0.95) 0%,
-      rgba(12, 18, 32, 0.98) 100%
+      180deg,
+      rgba(13, 20, 36, 0.97) 0%,
+      rgba(7, 12, 24, 0.99) 100%
     );
-    box-shadow:
-      0 0 0 1px rgba(255, 255, 255, 0.03) inset,
-      0 20px 50px -20px rgba(0, 0, 0, 0.6);
+    box-shadow: var(--shadow-rest);
   }
 
   .table-shell thead {
-    background: rgba(0, 0, 0, 0.25);
+    background: linear-gradient(180deg, rgba(2, 4, 10, 0.65), rgba(2, 4, 10, 0.3));
+  }
+
+  .table-shell thead th {
+    font-family: var(--font-condensed);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+
+  .table-shell thead tr {
+    border-bottom: 1px solid var(--gold-25);
+  }
+
+  .table-shell td {
+    font-variant-numeric: tabular-nums;
   }
 
   .table-shell tbody tr {
-    @apply transition-colors duration-150;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.06);
+    transition:
+      background var(--dur-fast) ease,
+      box-shadow var(--dur-fast) ease;
   }
 
+  /* Lame d'or à gauche au survol */
   .table-shell tbody tr:hover {
-    background: rgba(212, 175, 55, 0.04);
+    background: linear-gradient(90deg, var(--gold-05), transparent 45%);
+    box-shadow: inset 2px 0 0 var(--color-gold);
   }
 
+  /* Badge de rang : gemme hexagonale (clip sur les pseudos, jamais sur l'élément) */
   .rank-badge {
-    @apply inline-flex h-8 w-8 items-center justify-center rounded-full font-display text-sm;
+    @apply relative inline-flex h-8 w-8 items-center justify-center text-sm font-semibold;
+    isolation: isolate;
+    border: 0;
+    border-radius: 0;
+    font-family: var(--font-condensed);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .rank-badge::before,
+  .rank-badge::after {
+    content: "";
+    position: absolute;
+    clip-path: polygon(50% 0, 100% 27%, 100% 73%, 50% 100%, 0 73%, 0 27%);
+  }
+
+  .rank-badge::before {
+    inset: 0;
+    z-index: -2;
+  }
+
+  .rank-badge::after {
+    inset: 1.5px;
+    z-index: -1;
+    background: #0c1426;
   }
 
   .rank-badge-gold {
-    @apply border border-gold/50 text-gold;
-    background: linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(212, 175, 55, 0.05));
-    box-shadow: 0 0 16px -4px rgba(212, 175, 55, 0.4);
+    color: var(--color-gold-light);
+    filter: drop-shadow(0 0 8px var(--gold-40));
+  }
+
+  .rank-badge-gold::before {
+    background: linear-gradient(180deg, var(--color-gold-light), var(--color-gold-dim));
+  }
+
+  .rank-badge-gold::after {
+    background: linear-gradient(180deg, #15203c, #0a1120);
   }
 
   .rank-badge-muted {
-    @apply border border-white/10 text-muted bg-white/5;
+    color: var(--color-muted);
   }
 
+  .rank-badge-muted::before {
+    background: rgba(148, 163, 184, 0.3);
+  }
+
+  /* ============ TRANSITIONS DE BOARD ============ */
   .board-transition-root {
     @apply relative overflow-hidden;
   }
 
   .board-animate-in-right {
     animation:
-      board-slide-in-right 0.65s cubic-bezier(0.22, 1, 0.36, 1) both,
-      board-content-fade 0.5s ease both;
+      board-slide-in-right var(--dur-slow) var(--ease-lux) both,
+      board-content-fade 0.45s ease both;
   }
 
   .board-animate-in-left {
     animation:
-      board-slide-in-left 0.65s cubic-bezier(0.22, 1, 0.36, 1) both,
-      board-content-fade 0.5s ease both;
+      board-slide-in-left var(--dur-slow) var(--ease-lux) both,
+      board-content-fade 0.45s ease both;
   }
 
   .board-stagger-1 {
-    animation: board-fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.06s both;
+    animation: board-fade-up 0.5s var(--ease-lux) 0.05s both;
   }
 
   .board-stagger-2 {
-    animation: board-fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.14s both;
+    animation: board-fade-up 0.5s var(--ease-lux) 0.12s both;
   }
 
   .board-stagger-3 {
-    animation: board-fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.22s both;
+    animation: board-fade-up 0.5s var(--ease-lux) 0.19s both;
   }
 
   @keyframes board-content-fade {
@@ -629,22 +1105,22 @@
   @keyframes board-slide-in-right {
     from {
       opacity: 0;
-      transform: translateX(48px) scale(0.96);
+      transform: translateX(40px);
     }
     to {
       opacity: 1;
-      transform: translateX(0) scale(1);
+      transform: translateX(0);
     }
   }
 
   @keyframes board-slide-in-left {
     from {
       opacity: 0;
-      transform: translateX(-48px) scale(0.96);
+      transform: translateX(-40px);
     }
     to {
       opacity: 1;
-      transform: translateX(0) scale(1);
+      transform: translateX(0);
     }
   }
 
@@ -758,58 +1234,8 @@
     animation: lp-empty-pulse 2.4s ease-out infinite;
   }
 
-  /* Bandeau Joueur de la semaine — version prestige */
-  .potw-crown {
-    filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.6));
-    animation: potw-crown-float 3.4s ease-in-out infinite;
-  }
-
-  @keyframes potw-crown-float {
-    0%,
-    100% {
-      transform: translateY(0) rotate(-5deg);
-    }
-    50% {
-      transform: translateY(-3px) rotate(5deg);
-    }
-  }
-
-  .potw-shimmer::before {
-    content: "";
-    @apply pointer-events-none absolute inset-0 rounded-2xl;
-    padding: 1px;
-    background: linear-gradient(
-      120deg,
-      rgba(212, 175, 55, 0.7),
-      rgba(52, 211, 153, 0.5),
-      rgba(212, 175, 55, 0.7)
-    );
-    background-size: 220% 100%;
-    -webkit-mask:
-      linear-gradient(#000 0 0) content-box,
-      linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    animation: potw-border-pan 7s linear infinite;
-    opacity: 0.75;
-  }
-
-  @keyframes potw-border-pan {
-    to {
-      background-position: 220% 0;
-    }
-  }
-
-  .potw-lp-glow {
-    background: radial-gradient(
-      ellipse at center,
-      rgba(52, 211, 153, 0.28),
-      transparent 70%
-    );
-  }
-
   .animate-pop-in {
-    animation: pop-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation: pop-in 0.55s var(--ease-lux) both;
   }
 
   @keyframes pop-in {
@@ -825,12 +1251,14 @@
 
   /* Barre de progression de la sync auto */
   .sync-progress-track {
-    @apply relative mx-auto h-1 w-full max-w-[260px] overflow-hidden rounded-full;
+    @apply relative mx-auto h-1 w-full max-w-[260px] overflow-hidden;
+    border-radius: 2px;
     background: rgba(255, 255, 255, 0.08);
   }
 
   .sync-progress-fill {
-    @apply absolute inset-y-0 left-0 rounded-full;
+    @apply absolute inset-y-0 left-0;
+    border-radius: 2px;
     background: linear-gradient(
       90deg,
       var(--color-gold-dim),
@@ -847,11 +1275,11 @@
   }
 
   .trend-up {
-    @apply text-emerald-400;
+    color: var(--color-win);
   }
 
   .trend-down {
-    @apply text-red-400;
+    color: var(--color-loss);
   }
 
   .row-moved {
@@ -860,7 +1288,7 @@
 
   @keyframes row-moved-flash {
     0% {
-      background: color-mix(in srgb, var(--color-gold) 15%, transparent);
+      background: var(--gold-15);
     }
     100% {
       background: transparent;
@@ -869,31 +1297,101 @@
 
   /* Barre de progression intra-rang (LP vers la division suivante) */
   .rank-lp-track {
-    @apply relative h-1.5 w-full overflow-hidden rounded-full;
+    @apply relative h-1.5 w-full overflow-hidden;
+    border-radius: 2px;
     background: rgba(255, 255, 255, 0.08);
   }
 
   .rank-lp-fill {
-    @apply absolute inset-y-0 left-0 rounded-full;
-    transition: width 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+    @apply absolute inset-y-0 left-0;
+    border-radius: 2px;
+    transition: width 0.9s var(--ease-lux);
   }
 
-  /* État vide générique soigné */
-  .empty-state {
-    @apply relative overflow-hidden rounded-2xl border border-white/[0.06] px-6 py-10 text-center;
+  /* État vide : icône en écrin hexagonal */
+  .empty-state-icon {
+    @apply relative mx-auto mb-3 flex h-14 w-14 items-center justify-center text-2xl;
+    isolation: isolate;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .empty-state-icon::before,
+  .empty-state-icon::after {
+    content: "";
+    position: absolute;
+    clip-path: polygon(50% 0, 100% 27%, 100% 73%, 50% 100%, 0 73%, 0 27%);
+  }
+
+  .empty-state-icon::before {
+    inset: 0;
+    z-index: -2;
+    background: linear-gradient(180deg, var(--gold-40), var(--gold-10));
+  }
+
+  .empty-state-icon::after {
+    inset: 1.5px;
+    z-index: -1;
+    background: #0c1426;
+  }
+
+  /* ============ FOOTER + ORNEMENTS ============ */
+  .site-footer {
+    @apply relative;
+    border-top: 1px solid var(--line);
+  }
+
+  .site-footer::before {
+    content: "";
+    position: absolute;
+    top: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(320px, 60vw);
+    height: 1px;
+    background: var(--hairline-gold);
+  }
+
+  .site-footer::after {
+    content: "";
+    position: absolute;
+    top: -3.5px;
+    left: 50%;
+    width: 7px;
+    height: 7px;
+    transform: translateX(-50%) rotate(45deg);
+    border-radius: 1px;
+    background: linear-gradient(135deg, var(--color-gold-light), var(--color-gold-dim));
+    box-shadow: 0 0 10px 1px var(--gold-60);
+  }
+
+  .divider-ornate {
+    position: relative;
+    height: 1px;
     background: linear-gradient(
-      165deg,
-      rgba(18, 26, 46, 0.7) 0%,
-      rgba(12, 18, 32, 0.85) 100%
+      90deg,
+      transparent,
+      var(--gold-25) 20%,
+      var(--gold-40) 50%,
+      var(--gold-25) 80%,
+      transparent
     );
   }
 
-  .empty-state-icon {
-    @apply mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl text-2xl;
-    background: rgba(212, 175, 55, 0.1);
-    border: 1px solid rgba(212, 175, 55, 0.2);
+  .divider-ornate::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 6px;
+    height: 6px;
+    transform: translate(-50%, -50%) rotate(45deg);
+    background: var(--color-gold);
+    box-shadow: 0 0 8px var(--gold-60);
   }
 
+  /* ============ MOUVEMENT RÉDUIT ============ */
   @media (prefers-reduced-motion: reduce) {
     .board-animate-in-right,
     .board-animate-in-left,
@@ -904,12 +1402,35 @@
     .potw-crown,
     .potw-shimmer::before,
     .animate-pop-in,
-    .row-moved {
+    .row-moved,
+    .nav-link-active::after,
+    .leaderboard-tab-active::after,
+    .btn-primary::after,
+    .skeleton::after {
       animation: none;
     }
 
-    .title-tooltip {
+    .title-tooltip,
+    .card,
+    .card-glow,
+    .duel-card,
+    .quick-link-card,
+    .podium-card,
+    .potw-banner,
+    .btn-primary,
+    .table-shell tbody tr,
+    .leaderboard-tab,
+    .match-row-opgg,
+    .input {
       transition: none;
+    }
+
+    .quick-link-card:hover,
+    .duel-card:hover,
+    .podium-card:hover,
+    .potw-banner:hover,
+    .btn-primary:hover:not(:disabled) {
+      transform: none;
     }
   }
 }
