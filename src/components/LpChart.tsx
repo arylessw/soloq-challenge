@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { LpHistoryPoint } from "@/lib/lp-snapshots";
 
 type Accent = { main: string; light: string };
@@ -5,6 +6,8 @@ type Accent = { main: string; light: string };
 type Props = {
   points: LpHistoryPoint[];
   accent?: Accent;
+  subtitle?: string;
+  toolbar?: ReactNode;
 };
 
 const DEFAULT_ACCENT: Accent = { main: "#d4af37", light: "#f0e6b8" };
@@ -14,7 +17,12 @@ function formatAxisDate(iso: string): string {
   return d.toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
 }
 
-export function LpChart({ points, accent = DEFAULT_ACCENT }: Props) {
+export function LpChart({
+  points,
+  accent = DEFAULT_ACCENT,
+  subtitle = "Depuis le début du défi",
+  toolbar,
+}: Props) {
   if (points.length < 2) {
     const started = points.length === 1;
     return (
@@ -94,19 +102,24 @@ export function LpChart({ points, accent = DEFAULT_ACCENT }: Props) {
           <h3 className="font-display text-lg" style={{ color: accent.light }}>
             Progression LP
           </h3>
-          <p className="text-xs text-muted">Depuis le début du défi</p>
+          <p className="text-xs text-muted">{subtitle}</p>
         </div>
-        <div className="text-right">
-          <p
-            className={`font-display text-2xl tabular-nums ${
-              positive ? "text-emerald-400" : "text-red-400"
-            }`}
-          >
-            {last.lpNet > 0 ? `+${last.lpNet}` : last.lpNet} LP
-          </p>
-          {peak > 0 && peak !== last.lpNet && (
-            <p className="text-[11px] text-muted tabular-nums">Pic +{peak} LP</p>
-          )}
+        <div className="flex flex-col items-end gap-1.5">
+          {toolbar}
+          <div className="text-right">
+            <p
+              className={`text-metric text-2xl ${
+                positive ? "text-emerald-400" : "text-red-400"
+              }`}
+            >
+              {last.lpNet > 0 ? `+${last.lpNet}` : last.lpNet} LP
+            </p>
+            {peak > 0 && peak !== last.lpNet && (
+              <p className="text-[11px] text-muted tabular-nums">
+                Pic +{peak} LP
+              </p>
+            )}
+          </div>
         </div>
       </div>
 

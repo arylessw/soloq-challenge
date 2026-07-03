@@ -36,6 +36,13 @@ export default async function HomePage() {
             <span className="block text-xs text-muted">Stats, champions & rôles</span>
           </span>
         </Link>
+        <Link href="/records" className="quick-link-card">
+          <span className="quick-link-icon">🏆</span>
+          <span>
+            <span className="font-medium text-gold-light">Records</span>
+            <span className="block text-xs text-muted">Le hall of fame du défi</span>
+          </span>
+        </Link>
       </div>
 
       <WeeklyRace />

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { DuelTimelineChart } from "@/components/DuelTimelineChart";
 import { TitleBadgeList } from "@/components/TitleBadge";
 import { UserAvatar } from "@/components/UserAvatar";
@@ -22,6 +22,26 @@ export function DuelsBoard() {
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  function rematch(duel: DuelView) {
+    setPlayerAId(duel.playerA.id);
+    setPlayerBId(duel.playerB.id);
+    setMetric(duel.metric);
+    const durationDays = Math.max(
+      1,
+      Math.min(
+        30,
+        Math.round(
+          (new Date(duel.endsAt).getTime() -
+            new Date(duel.startsAt).getTime()) /
+            86400000
+        )
+      )
+    );
+    setDays(durationDays);
+    formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 
   const titleMap = assignTitles(players);
 
@@ -90,7 +110,17 @@ export function DuelsBoard() {
             </span>
           </div>
           {isFinished ? (
-            <span className="text-xs text-muted">Terminé</span>
+            <span className="flex items-center gap-2">
+              <span className="text-xs text-muted">Terminé</span>
+              <button
+                type="button"
+                onClick={() => rematch(duel)}
+                className="duel-timer transition hover:border-gold/40 hover:text-gold-light"
+                title="Relancer le même duel"
+              >
+                🔄 Rejouer
+              </button>
+            </span>
           ) : (
             <span className="duel-timer">
               {duel.daysLeft > 0 ? `${duel.daysLeft} j restant${duel.daysLeft > 1 ? "s" : ""}` : "Dernier jour"}
@@ -145,7 +175,11 @@ export function DuelsBoard() {
 
   return (
     <div className="space-y-8">
-      <form onSubmit={createDuel} className="card-glow relative z-[1] space-y-4">
+      <form
+        ref={formRef}
+        onSubmit={createDuel}
+        className="card-glow relative z-[1] space-y-4 scroll-mt-24"
+      >
         <h2 className="font-display text-xl text-gold-light">Lancer un duel</h2>
         <p className="text-sm text-muted">
           Deux joueurs s&apos;affrontent sur une période — le gagnant est celui qui progresse le

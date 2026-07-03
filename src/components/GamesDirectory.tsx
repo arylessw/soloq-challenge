@@ -12,23 +12,36 @@ import { tierCardClass } from "@/lib/tier-styles";
 
 const ROLE_OPTIONS: RoleId[] = ["TOP", "JUNGLE", "MIDDLE", "BOTTOM", "UTILITY"];
 
+type SortId = "rank" | "lp" | "wr" | "recent";
+
+const SORTERS: Record<SortId, (p: PlayerView) => number> = {
+  rank: (p) => p.rankScore ?? -Infinity,
+  lp: (p) => p.lpNet ?? -Infinity,
+  wr: (p) => p.winrate ?? -Infinity,
+  recent: (p) => (p.lastGameAt ? new Date(p.lastGameAt).getTime() : -Infinity),
+};
+
 export function GamesDirectory({ players }: { players: PlayerView[] }) {
   const [search, setSearch] = useState("");
   const [role, setRole] = useState<RoleId | "ALL">("ALL");
+  const [sort, setSort] = useState<SortId>("rank");
   const [compare, setCompare] = useState<string[]>([]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return players.filter((p) => {
-      if (role !== "ALL" && p.mainRole?.role !== role) return false;
-      if (!q) return true;
-      return (
-        p.gameName.toLowerCase().includes(q) ||
-        p.riotId.toLowerCase().includes(q) ||
-        (p.owner?.displayName.toLowerCase().includes(q) ?? false)
-      );
-    });
-  }, [players, search, role]);
+    const score = SORTERS[sort];
+    return players
+      .filter((p) => {
+        if (role !== "ALL" && p.mainRole?.role !== role) return false;
+        if (!q) return true;
+        return (
+          p.gameName.toLowerCase().includes(q) ||
+          p.riotId.toLowerCase().includes(q) ||
+          (p.owner?.displayName.toLowerCase().includes(q) ?? false)
+        );
+      })
+      .sort((a, b) => score(b) - score(a));
+  }, [players, search, role, sort]);
 
   function toggleCompare(id: string) {
     setCompare((prev) =>
@@ -107,6 +120,17 @@ export function GamesDirectory({ players }: { players: PlayerView[] }) {
             />
           ))}
         </div>
+        <select
+          className="input !w-auto !py-2 text-xs shrink-0"
+          value={sort}
+          onChange={(e) => setSort(e.target.value as SortId)}
+          aria-label="Trier les profils"
+        >
+          <option value="rank">Tri : Rang</option>
+          <option value="lp">Tri : Progression LP</option>
+          <option value="wr">Tri : Winrate</option>
+          <option value="recent">Tri : Activité récente</option>
+        </select>
       </div>
 
       <p className="mb-5 text-xs text-muted/80">

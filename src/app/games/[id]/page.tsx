@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChampionStatsPanel } from "@/components/ChampionStatsPanel";
 import { RoleStatsPanel } from "@/components/RoleStatsPanel";
-import { LpChart } from "@/components/LpChart";
+import { LpChartRange } from "@/components/LpChartRange";
 import { PlayerMatchHistory } from "@/components/PlayerMatchHistory";
 import { ProfileHeader } from "@/components/ProfileHeader";
 import { TierProfileAccent } from "@/components/TierProfileAccent";
@@ -74,7 +74,7 @@ export default async function PlayerGamesPage({ params }: Props) {
       <ProfileHeader player={player} titles={titles} />
 
       <div className="grid gap-6 lg:grid-cols-2 mb-6">
-        <LpChart points={lpHistory} accent={accent} />
+        <LpChartRange points={lpHistory} accent={accent} />
         <ChampionStatsPanel stats={player.championStats} />
       </div>
 
