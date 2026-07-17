@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin-auth";
 import { syncAllPlayers } from "@/lib/sync-all";
 
+export const maxDuration = 60;
+
 export async function POST(request: Request) {
   const auth = await requireAdmin(request);
   if (!auth.ok) {

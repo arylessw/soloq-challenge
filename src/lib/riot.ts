@@ -88,16 +88,14 @@ export async function fetchAccount(
   }
 }
 
-export async function fetchSoloQueue(
-  gameName: string,
-  tagLine: string
-): Promise<SoloQueueStats> {
-  const account = await fetchAccount(gameName, tagLine);
-
-  const entries = await riotFetch<LeagueEntryDto[]>(
-    `${PLATFORM}/lol/league/v4/entries/by-puuid/${account.puuid}`
+/** Riot ID actuel d'un compte (détecte les renommages) — le puuid est immuable. */
+export async function fetchAccountByPuuid(puuid: string): Promise<AccountDto> {
+  return riotFetch<AccountDto>(
+    `${REGIONAL}/riot/account/v1/accounts/by-puuid/${encodeURIComponent(puuid)}`
   );
+}
 
+function soloFromEntries(entries: LeagueEntryDto[], puuid: string): SoloQueueStats {
   const solo = entries.find((e) => e.queueType === "RANKED_SOLO_5x5");
   if (!solo) {
     throw new Error("UNRANKED");
@@ -111,7 +109,32 @@ export async function fetchSoloQueue(
     lp: solo.leaguePoints,
     wins: solo.wins,
     losses: solo.losses,
-    puuid: account.puuid,
-    summonerId: account.puuid,
+    puuid,
+    summonerId: puuid,
   };
+}
+
+/**
+ * Stats SoloQ par puuid stocké — la voie robuste pour la sync : ne dépend pas
+ * du Riot ID (pseudo#tag), qui casse à chaque renommage du joueur.
+ */
+export async function fetchSoloQueueByPuuid(
+  puuid: string
+): Promise<SoloQueueStats> {
+  const entries = await riotFetch<LeagueEntryDto[]>(
+    `${PLATFORM}/lol/league/v4/entries/by-puuid/${encodeURIComponent(puuid)}`
+  );
+  return soloFromEntries(entries, puuid);
+}
+
+export async function fetchSoloQueue(
+  gameName: string,
+  tagLine: string
+): Promise<SoloQueueStats> {
+  const account = await fetchAccount(gameName, tagLine);
+
+  const entries = await riotFetch<LeagueEntryDto[]>(
+    `${PLATFORM}/lol/league/v4/entries/by-puuid/${account.puuid}`
+  );
+  return soloFromEntries(entries, account.puuid);
 }

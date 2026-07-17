@@ -6,10 +6,51 @@ import { computeRoleStats } from "@/lib/role-stats";
 import { computeLpProgress } from "@/lib/ranks";
 import { fetchInGame } from "@/lib/riot-spectator";
 import { computeStreak } from "@/lib/streak";
-import { fetchAccount, fetchSoloQueue } from "@/lib/riot";
+import {
+  fetchAccount,
+  fetchAccountByPuuid,
+  fetchSoloQueue,
+  fetchSoloQueueByPuuid,
+  type SoloQueueStats,
+} from "@/lib/riot";
 import { fetchRecentRankedMatches, MATCH_HISTORY_COUNT } from "@/lib/riot-matches";
 
-const MATCH_STATS_REFRESH_MS = 30 * 60 * 1000;
+export const MATCH_STATS_REFRESH_MS = 30 * 60 * 1000;
+
+/** Erreurs où re-tenter par Riot ID est inutile (globales, pas liées au puuid). */
+function isGlobalRiotError(msg: string): boolean {
+  return (
+    msg === "UNRANKED" ||
+    msg.includes("refusée") ||
+    msg.includes("Accès refusé") ||
+    msg.includes("Limite API")
+  );
+}
+
+/** Met à jour le Riot ID stocké si le joueur s'est renommé (puuid immuable). */
+async function refreshRiotId(playerId: string, puuid: string): Promise<void> {
+  try {
+    const account = await fetchAccountByPuuid(puuid);
+    const player = await prisma.player.findUnique({
+      where: { id: playerId },
+      select: { gameName: true, tagLine: true },
+    });
+    if (
+      player &&
+      account.gameName &&
+      account.tagLine &&
+      (player.gameName !== account.gameName ||
+        player.tagLine !== account.tagLine)
+    ) {
+      await prisma.player.update({
+        where: { id: playerId },
+        data: { gameName: account.gameName, tagLine: account.tagLine },
+      });
+    }
+  } catch {
+    // Rafraîchissement du nom optionnel — ne bloque jamais la sync
+  }
+}
 
 async function refreshPresence(playerId: string, puuid: string): Promise<void> {
   try {
@@ -70,12 +111,29 @@ async function refreshMatchStats(
   }
 }
 
-export async function syncPlayerById(id: string): Promise<{ ok: boolean; error?: string }> {
+export async function syncPlayerById(
+  id: string,
+  opts: { matchStats?: boolean } = {}
+): Promise<{ ok: boolean; error?: string }> {
+  const allowMatchStats = opts.matchStats ?? true;
   const player = await prisma.player.findUnique({ where: { id } });
   if (!player) return { ok: false, error: "Joueur introuvable" };
 
   try {
-    const stats = await fetchSoloQueue(player.gameName, player.tagLine);
+    // Voie robuste : le puuid stocké survit aux renommages de Riot ID.
+    // Le Riot ID ne sert de recours que si le puuid manque ou est corrompu.
+    let stats: SoloQueueStats;
+    if (player.puuid) {
+      try {
+        stats = await fetchSoloQueueByPuuid(player.puuid);
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "Erreur";
+        if (isGlobalRiotError(msg)) throw e;
+        stats = await fetchSoloQueue(player.gameName, player.tagLine);
+      }
+    } else {
+      stats = await fetchSoloQueue(player.gameName, player.tagLine);
+    }
 
     const progress = computeLpProgress(
       {
@@ -117,13 +175,17 @@ export async function syncPlayerById(id: string): Promise<{ ok: boolean; error?:
       currentLp: stats.lp,
     });
 
+    const matchStatsDue =
+      !player.lastKdaSyncedAt ||
+      Date.now() - player.lastKdaSyncedAt.getTime() >= MATCH_STATS_REFRESH_MS;
+
     await Promise.all([
-      refreshMatchStats(
-        id,
-        stats.puuid,
-        player.createdAt,
-        player.lastKdaSyncedAt
-      ),
+      allowMatchStats
+        ? refreshMatchStats(id, stats.puuid, player.createdAt, player.lastKdaSyncedAt)
+        : Promise.resolve(),
+      allowMatchStats && matchStatsDue
+        ? refreshRiotId(id, stats.puuid)
+        : Promise.resolve(),
       refreshPresence(id, stats.puuid),
     ]);
 
@@ -133,23 +195,22 @@ export async function syncPlayerById(id: string): Promise<{ ok: boolean; error?:
 
     if (msg === "UNRANKED") {
       try {
-        const account = await fetchAccount(player.gameName, player.tagLine);
+        const puuid =
+          player.puuid ??
+          (await fetchAccount(player.gameName, player.tagLine)).puuid;
         await prisma.player.update({
           where: { id },
           data: {
-            puuid: account.puuid,
-            summonerId: account.puuid,
+            puuid,
+            summonerId: puuid,
             lastSyncedAt: new Date(),
           },
         });
         await Promise.all([
-          refreshMatchStats(
-            id,
-            account.puuid,
-            player.createdAt,
-            player.lastKdaSyncedAt
-          ),
-          refreshPresence(id, account.puuid),
+          allowMatchStats
+            ? refreshMatchStats(id, puuid, player.createdAt, player.lastKdaSyncedAt)
+            : Promise.resolve(),
+          refreshPresence(id, puuid),
         ]);
         return { ok: true };
       } catch (inner) {
