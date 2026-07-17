@@ -14,8 +14,9 @@ export type SyncResult = {
 /** Marge avant le timeout serverless (maxDuration 60 s sur la route). */
 const TIME_BUDGET_MS = 45_000;
 const DELAY_BETWEEN_PLAYERS_MS = 400;
-/** Max de syncs « lourdes » (historique de matchs, ~21 appels) par passage. */
-const MAX_MATCH_REFRESH_PER_RUN = 3;
+/** Max de syncs « lourdes » (historique de matchs, ~21 appels) par passage —
+    2 pour rester sous les 100 req/2 min d'une clé de dev. */
+const MAX_MATCH_REFRESH_PER_RUN = 2;
 
 export async function syncAllPlayers(): Promise<{
   synced: number;
