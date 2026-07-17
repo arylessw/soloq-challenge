@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { AdminDashboard } from "@/lib/admin-dashboard";
+import { formatRelativeTimeFromIso } from "@/lib/format-time";
 import type { PlayerView } from "@/lib/players";
 
 const STORAGE_KEY = "soloq-admin-secret";
@@ -105,6 +106,40 @@ export function AdminDashboard() {
             }
           : null
       );
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erreur");
+    }
+  }
+
+  async function fixRiotId(id: string, riotId: string) {
+    if (!secret) return;
+    const input = prompt(
+      `Nouveau Riot ID pour ${riotId} (format pseudo#tag) :`,
+      riotId
+    );
+    if (!input) return;
+    const hashIdx = input.lastIndexOf("#");
+    if (hashIdx <= 0) {
+      setError("Format attendu : pseudo#tag");
+      return;
+    }
+    setError(null);
+    setMessage(null);
+    try {
+      const res = await fetch(`/api/admin/players/${id}`, {
+        method: "PATCH",
+        headers: { ...headers(), "Content-Type": "application/json" },
+        body: JSON.stringify({
+          gameName: input.slice(0, hashIdx),
+          tagLine: input.slice(hashIdx + 1),
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "Correction échouée");
+      setMessage(
+        `Riot ID corrigé → ${json.riotId}${json.synced ? " (rang resynchronisé)" : ""}`
+      );
+      await load(secret);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erreur");
     }
@@ -268,6 +303,7 @@ export function AdminDashboard() {
         <PlayersTable
           players={data.players}
           onRemove={removePlayer}
+          onFixRiotId={fixRiotId}
         />
       )}
 
@@ -414,12 +450,16 @@ function AdminError({
   );
 }
 
+const SYNC_STALE_MS = 60 * 60 * 1000;
+
 function PlayersTable({
   players,
   onRemove,
+  onFixRiotId,
 }: {
   players: PlayerView[];
   onRemove: (id: string, riotId: string) => void;
+  onFixRiotId: (id: string, riotId: string) => void;
 }) {
   return (
     <div className="table-shell">
@@ -429,26 +469,55 @@ function PlayersTable({
             <th className="py-3 pl-6 pr-4">Joueur</th>
             <th className="py-3 pr-4">Rang</th>
             <th className="py-3 pr-4">LP net</th>
-            <th className="py-3 pr-4">Action</th>
+            <th className="py-3 pr-4">Sync</th>
+            <th className="py-3 pr-4">Actions</th>
           </tr>
         </thead>
         <tbody>
-          {players.map((p) => (
-            <tr key={p.id} className="border-b border-white/[0.04]">
-              <td className="py-4 pl-6 pr-4 font-medium">{p.riotId}</td>
-              <td className="py-4 pr-4 text-muted">{p.currentRank ?? "—"}</td>
-              <td className="py-4 pr-4">{p.progressLabel ?? "—"}</td>
-              <td className="py-4 pr-4">
-                <button
-                  type="button"
-                  onClick={() => onRemove(p.id, p.riotId)}
-                  className="rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-1.5 text-xs text-red-300 hover:bg-red-500/20 transition"
-                >
-                  Supprimer
-                </button>
-              </td>
-            </tr>
-          ))}
+          {players.map((p) => {
+            const syncAge = p.lastSyncedAt
+              ? Date.now() - new Date(p.lastSyncedAt).getTime()
+              : null;
+            const stale = syncAge == null || syncAge > SYNC_STALE_MS;
+            return (
+              <tr key={p.id} className="border-b border-white/[0.04]">
+                <td className="py-4 pl-6 pr-4 font-medium">{p.riotId}</td>
+                <td className="py-4 pr-4 text-muted">{p.currentRank ?? "—"}</td>
+                <td className="py-4 pr-4">{p.progressLabel ?? "—"}</td>
+                <td className="py-4 pr-4">
+                  <span
+                    className={`text-xs ${stale ? "font-semibold text-red-400" : "text-muted"}`}
+                    title={
+                      stale
+                        ? "Ce joueur ne se synchronise plus — Riot ID probablement renommé. Corrige son ID."
+                        : undefined
+                    }
+                  >
+                    {stale ? "⚠ " : ""}
+                    {formatRelativeTimeFromIso(p.lastSyncedAt) ?? "jamais"}
+                  </span>
+                </td>
+                <td className="py-4 pr-4">
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => onFixRiotId(p.id, p.riotId)}
+                      className="rounded-lg border border-gold/30 bg-gold/10 px-3 py-1.5 text-xs text-gold-light hover:bg-gold/20 transition"
+                    >
+                      Corriger l&apos;ID
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onRemove(p.id, p.riotId)}
+                      className="rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-1.5 text-xs text-red-300 hover:bg-red-500/20 transition"
+                    >
+                      Supprimer
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
